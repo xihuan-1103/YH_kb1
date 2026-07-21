@@ -57,6 +57,7 @@
         <div class="sidebar-wrapper animate-left" :key="'left-' + activeTab">
           <div 
             class="card-item" 
+            :class="{ 'operation-card-item': item.chartType === 'group_operation' }"
             v-for="(item, idx) in currentTabConfig.left" 
             :key="'l-' + idx"
           >
@@ -73,7 +74,7 @@
                 </el-button>
               </template>
             </ScreenSubtitle>
-            <div class="chart-wrapper">
+            <div class="chart-wrapper" :class="{ 'operation-chart-wrapper': item.chartType === 'group_operation' }">
               <div v-if="item.chartType === 'market_expansion'" class="market-expansion-card">
                 <!-- Highlight Row for Year Accumulated & Year Target -->
                 <div class="market-highlight-row">
@@ -119,6 +120,85 @@
                   <div class="custom-progress-bg">
                     <div class="custom-progress-fill" style="width: 76.57%">
                       <div class="progress-glare"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else-if="item.chartType === 'group_operation'" class="group-operation-card">
+                <!-- 顶部：本年度开累产值大卡片 -->
+                <div class="op-main-value-card">
+                  <div class="op-main-icon">
+                    <i class="el-icon-s-data"></i>
+                  </div>
+                  <div class="op-main-content">
+                    <div class="op-main-label">本年度开累产值</div>
+                    <div class="op-main-value">
+                      <span class="op-main-num">45,280</span>
+                      <span class="op-main-unit">万元</span>
+                    </div>
+                  </div>
+                  <div class="op-main-scan"></div>
+                </div>
+
+                <!-- 中部：本月产值 + 计量形象比 -->
+                <div class="op-sub-row">
+                  <div class="op-sub-card month-value">
+                    <div class="op-sub-icon"><i class="el-icon-date"></i></div>
+                    <div class="op-sub-info">
+                      <div class="op-sub-label">本月产值</div>
+                      <div class="op-sub-value">
+                        <span class="op-sub-num">6,520</span>
+                        <span class="op-sub-unit">万</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="op-sub-card ratio-value">
+                    <div class="op-sub-icon"><i class="el-icon-odometer"></i></div>
+                    <div class="op-sub-info">
+                      <div class="op-sub-label">计量形象比</div>
+                      <div class="op-sub-value">
+                        <span class="op-sub-num">88.5</span>
+                        <span class="op-sub-unit">%</span>
+                      </div>
+                    </div>
+                    <div class="op-ratio-ring">
+                      <svg viewBox="0 0 36 36" class="circular-chart">
+                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="circle" stroke-dasharray="88.5, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 底部：计量情况 4 个指标 -->
+                <div class="op-measure-grid">
+                  <div class="op-measure-cell reported">
+                    <div class="op-cell-icon"><i class="el-icon-upload2"></i></div>
+                    <div class="op-cell-content">
+                      <div class="op-cell-label">已上报计量</div>
+                      <div class="op-cell-value">38,150 <span>万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-measure-cell approved">
+                    <div class="op-cell-icon"><i class="el-icon-check"></i></div>
+                    <div class="op-cell-content">
+                      <div class="op-cell-label">已批复计量</div>
+                      <div class="op-cell-value">35,100 <span>万</span></div>
+                      <div class="op-cell-deduct">扣款 586 万</div>
+                    </div>
+                  </div>
+                  <div class="op-measure-cell prepayment">
+                    <div class="op-cell-icon"><i class="el-icon-wallet"></i></div>
+                    <div class="op-cell-content">
+                      <div class="op-cell-label">已收预付款</div>
+                      <div class="op-cell-value">2,170 <span>万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-measure-cell payment">
+                    <div class="op-cell-icon"><i class="el-icon-money"></i></div>
+                    <div class="op-cell-content">
+                      <div class="op-cell-label">已收计量款</div>
+                      <div class="op-cell-value">32,770 <span>万</span></div>
                     </div>
                   </div>
                 </div>
@@ -403,8 +483,8 @@
     <el-dialog
       :title="detailDialogTitle"
       :visible.sync="detailDialogVisible"
-      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info') ? '80%' : '1000px'"
-      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info') ? 'market-dialog-large' : ''"
+      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? '80%' : '1000px'"
+      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? 'market-dialog-large' : ''"
       append-to-body
       class="detail-drill-dialog"
       @opened="handleDialogOpened"
@@ -641,6 +721,96 @@
                   </el-table>
                 </div>
               </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Custom layout for group_operation -->
+        <div v-else-if="activeDetailItem.chartType === 'group_operation'" class="market-expansion-dialog-body">
+          
+          <!-- Top Row: Summary KPIs -->
+          <div class="operation-dialog-summary-row">
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">本年度开累产值</div>
+              <div class="summary-value">
+                <span class="val">45,280</span>
+                <span class="unit">万元</span>
+              </div>
+            </div>
+            <div class="operation-summary-card">
+              <div class="summary-label">本月产值</div>
+              <div class="summary-value">
+                <span class="val">6,520</span>
+                <span class="unit">万元</span>
+              </div>
+            </div>
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">计量形象比</div>
+              <div class="summary-value cyan">
+                <span class="val">88.5</span>
+                <span class="unit">%</span>
+              </div>
+              <div class="summary-tip">上报计量/产值</div>
+            </div>
+            <div class="operation-summary-card">
+              <div class="summary-label">产值收款比</div>
+              <div class="summary-value">
+                <span class="val">72.3</span>
+                <span class="unit">%</span>
+              </div>
+              <div class="summary-tip">(已收计量款+已收预付款)/产值</div>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Table -->
+          <div class="market-section-block" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="market-section-title">
+              <span class="title-decorator"></span>
+              <span>各区域/项目年度累计完成情况（点击表头可排序）</span>
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
+              <span class="sort-tip-label">排序方式：</span>
+              <el-radio-group v-model="operationSortType" size="mini" fill="#00f3ff">
+                <el-radio-button label="measureRatio">按计量形象比降序</el-radio-button>
+                <el-radio-button label="collectionRatio">按产值收款比降序</el-radio-button>
+              </el-radio-group>
+            </div>
+
+            <div class="table-container" style="flex: 1;">
+              <el-table 
+                :data="sortedOperationTableData" 
+                stripe 
+                size="mini"
+                height="100%"
+                style="width: 100%"
+                class="custom-image-style-table"
+              >
+                <el-table-column prop="region" label="区域/项目" width="140px" fixed />
+                <el-table-column prop="accumValue" label="年度累计产值(万)" sortable width="130px" />
+                <el-table-column prop="reportedMeasure" label="已上报计量(万)" sortable width="120px" />
+                <el-table-column label="已批复计量(万)" width="180px">
+                  <template slot-scope="scope">
+                    <span>{{ scope.row.approvedMeasure }}</span>
+                    <span class="deduct-tip">(扣款: {{ scope.row.deductAmount }}万)</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="prepayment" label="已收预付款(万)" sortable width="120px" />
+                <el-table-column prop="measurePayment" label="已收计量款(万)" sortable width="120px" />
+                <el-table-column prop="measureRatio" label="计量形象比(%)" sortable width="120px">
+                  <template slot-scope="scope">
+                    <span style="color: #00f3ff; font-weight: bold;">{{ scope.row.measureRatio }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="collectionRatio" label="产值收款比(%)" sortable width="120px">
+                  <template slot-scope="scope">
+                    <span :style="{ color: parseFloat(scope.row.collectionRatio) >= 80 ? '#67C23A' : parseFloat(scope.row.collectionRatio) >= 70 ? '#E6A23C' : '#F56C6C' }">
+                      {{ scope.row.collectionRatio }}
+                    </span>
+                  </template>
+                </el-table-column>
+              </el-table>
             </div>
           </div>
 
@@ -922,6 +1092,20 @@ export default {
       },
       scopeSubChartInstance: null,
 
+      // Group Operation states
+      operationSortType: 'measureRatio',
+      operationTableData: [
+        { region: '杭州区域中心', accumValue: '8,250.0', reportedMeasure: '7,420.5', approvedMeasure: '6,850.2', deductAmount: '120.5', prepayment: '500.0', measurePayment: '6,200.0', measureRatio: '89.7', collectionRatio: '81.2' },
+        { region: '绍兴区域中心', accumValue: '6,120.0', reportedMeasure: '5,510.4', approvedMeasure: '5,120.0', deductAmount: '95.2', prepayment: '350.0', measurePayment: '4,650.0', measureRatio: '90.2', collectionRatio: '81.3' },
+        { region: '金衢区域中心', accumValue: '5,840.0', reportedMeasure: '5,210.2', approvedMeasure: '4,850.0', deductAmount: '85.0', prepayment: '280.0', measurePayment: '4,320.0', measureRatio: '89.2', collectionRatio: '78.6' },
+        { region: '甬舟区域中心', accumValue: '5,420.0', reportedMeasure: '4,820.5', approvedMeasure: '4,420.0', deductAmount: '78.5', prepayment: '250.0', measurePayment: '3,950.0', measureRatio: '89.3', collectionRatio: '76.9' },
+        { region: '台州区域中心', accumValue: '4,850.0', reportedMeasure: '4,280.2', approvedMeasure: '3,920.0', deductAmount: '65.0', prepayment: '200.0', measurePayment: '3,480.0', measureRatio: '88.3', collectionRatio: '75.7' },
+        { region: '嘉兴区域中心', accumValue: '4,520.0', reportedMeasure: '3,950.8', approvedMeasure: '3,650.0', deductAmount: '58.0', prepayment: '180.0', measurePayment: '3,200.0', measureRatio: '87.4', collectionRatio: '74.8' },
+        { region: '温州区域中心', accumValue: '5,680.0', reportedMeasure: '5,020.5', approvedMeasure: '4,680.0', deductAmount: '92.0', prepayment: '320.0', measurePayment: '4,100.0', measureRatio: '88.4', collectionRatio: '77.6' },
+        { region: '湖州区域中心', accumValue: '3,850.0', reportedMeasure: '3,380.2', approvedMeasure: '3,120.0', deductAmount: '52.0', prepayment: '150.0', measurePayment: '2,780.0', measureRatio: '87.8', collectionRatio: '76.1' },
+        { region: '丽水区域中心', accumValue: '3,520.0', reportedMeasure: '3,050.0', approvedMeasure: '2,850.0', deductAmount: '45.0', prepayment: '120.0', measurePayment: '2,520.0', measureRatio: '86.6', collectionRatio: '75.0' }
+      ],
+
       // Market Expansion Data
       marketRegionKPIs: [
         { label: '区域新签合同总目标', value: '31,500', unit: '万元' },
@@ -1008,6 +1192,14 @@ export default {
     }
   },
   computed: {
+    sortedOperationTableData() {
+      const data = [...this.operationTableData];
+      if (this.operationSortType === 'measureRatio') {
+        return data.sort((a, b) => parseFloat(b.measureRatio) - parseFloat(a.measureRatio));
+      } else {
+        return data.sort((a, b) => parseFloat(b.collectionRatio) - parseFloat(a.collectionRatio));
+      }
+    },
     sortedReceivables() {
       return this.receivablesRaw.map(item => {
         const ratio = item.base > 0 ? (item.received / item.base) : 0;
@@ -1648,10 +1840,18 @@ export default {
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   
+  &.operation-card-item {
+    height: 310px;
+  }
+  
   .chart-wrapper {
     width: 100%;
     height: 200px;
     padding: 10px;
+    
+    &.operation-chart-wrapper {
+      height: 278px;
+    }
   }
   
   .project-info-side-card {
@@ -2439,6 +2639,314 @@ export default {
   }
 }
 
+/* --- Group Operation Card CSS (New Design) --- */
+.group-operation-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 4px;
+  color: #fff;
+
+  /* 顶部主产值卡片 */
+  .op-main-value-card {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(237, 190, 117, 0.18) 0%, rgba(237, 190, 117, 0.05) 100%);
+    border: 1px solid rgba(237, 190, 117, 0.45);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: inset 0 0 20px rgba(237, 190, 117, 0.08), 0 4px 15px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+
+    &:hover {
+      border-color: rgba(237, 190, 117, 0.8);
+      box-shadow: inset 0 0 25px rgba(237, 190, 117, 0.15), 0 0 20px rgba(237, 190, 117, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .op-main-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: rgba(237, 190, 117, 0.15);
+      border: 1px solid rgba(237, 190, 117, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      i {
+        font-size: 22px;
+        color: #edbe75;
+      }
+    }
+
+    .op-main-content {
+      flex: 1;
+
+      .op-main-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 2px;
+      }
+
+      .op-main-value {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+
+        .op-main-num {
+          font-size: 28px;
+          font-weight: bold;
+          color: #edbe75;
+          font-family: 'YJSZ', monospace;
+          text-shadow: 0 0 15px rgba(237, 190, 117, 0.4);
+        }
+
+        .op-main-unit {
+          font-size: 12px;
+          color: rgba(237, 190, 117, 0.8);
+        }
+      }
+    }
+
+    .op-main-scan {
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+      animation: opScanMove 3s infinite ease-in-out;
+      pointer-events: none;
+    }
+  }
+
+  /* 中部两个子卡片 */
+  .op-sub-row {
+    display: flex;
+    gap: 10px;
+    height: 76px;
+
+    .op-sub-card {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(14, 40, 85, 0.45);
+      border: 1px solid rgba(41, 94, 151, 0.5);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+
+      &:hover {
+        border-color: rgba(0, 243, 255, 0.6);
+        background: rgba(14, 40, 85, 0.65);
+        transform: translateY(-1px);
+      }
+
+      &.month-value {
+        border-left: 3px solid #00f3ff;
+        .op-sub-icon { background: rgba(0, 243, 255, 0.12); border-color: rgba(0, 243, 255, 0.3); i { color: #00f3ff; } }
+        .op-sub-num { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
+      }
+
+      &.ratio-value {
+        border-left: 3px solid #67C23A;
+        .op-sub-icon { background: rgba(103, 194, 58, 0.12); border-color: rgba(103, 194, 58, 0.3); i { color: #67C23A; } }
+        .op-sub-num { color: #67C23A; text-shadow: 0 0 10px rgba(103, 194, 58, 0.3); }
+      }
+
+      .op-sub-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i {
+          font-size: 18px;
+        }
+      }
+
+      .op-sub-info {
+        flex: 1;
+        min-width: 0;
+
+        .op-sub-label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-bottom: 2px;
+        }
+
+        .op-sub-value {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+
+          .op-sub-num {
+            font-size: 22px;
+            font-weight: bold;
+            font-family: 'YJSZ', monospace;
+          }
+
+          .op-sub-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+          }
+        }
+      }
+
+      .op-ratio-ring {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+
+        .circular-chart {
+          width: 100%;
+          height: 100%;
+          transform: rotate(-90deg);
+
+          .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 3;
+          }
+
+          .circle {
+            fill: none;
+            stroke: #67C23A;
+            stroke-width: 3;
+            stroke-linecap: round;
+            animation: opCircleProgress 1.5s ease-out forwards;
+          }
+        }
+      }
+    }
+  }
+
+  /* 底部计量网格 */
+  .op-measure-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 8px;
+
+    .op-measure-cell {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: rgba(14, 40, 85, 0.35);
+      border: 1px solid rgba(41, 94, 151, 0.35);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: all 0.25s ease;
+      cursor: pointer;
+
+      &:hover {
+        transform: translateY(-2px) scale(1.02);
+        background: rgba(14, 40, 85, 0.55);
+      }
+
+      &.reported {
+        border-left: 2px solid #00f3ff;
+        &:hover { border-color: rgba(0, 243, 255, 0.6); box-shadow: 0 4px 12px rgba(0, 243, 255, 0.15); }
+        .op-cell-icon { background: rgba(0, 243, 255, 0.1); i { color: #00f3ff; } }
+        .op-cell-value { color: #00f3ff; }
+      }
+
+      &.approved {
+        border-left: 2px solid #edbe75;
+        &:hover { border-color: rgba(237, 190, 117, 0.6); box-shadow: 0 4px 12px rgba(237, 190, 117, 0.15); }
+        .op-cell-icon { background: rgba(237, 190, 117, 0.1); i { color: #edbe75; } }
+        .op-cell-value { color: #edbe75; }
+      }
+
+      &.prepayment {
+        border-left: 2px solid #67C23A;
+        &:hover { border-color: rgba(103, 194, 58, 0.6); box-shadow: 0 4px 12px rgba(103, 194, 58, 0.15); }
+        .op-cell-icon { background: rgba(103, 194, 58, 0.1); i { color: #67C23A; } }
+        .op-cell-value { color: #67C23A; }
+      }
+
+      &.payment {
+        border-left: 2px solid #1b6cff;
+        &:hover { border-color: rgba(27, 108, 255, 0.6); box-shadow: 0 4px 12px rgba(27, 108, 255, 0.15); }
+        .op-cell-icon { background: rgba(27, 108, 255, 0.1); i { color: #1b6cff; } }
+        .op-cell-value { color: #1b6cff; }
+      }
+
+      .op-cell-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i {
+          font-size: 14px;
+        }
+      }
+
+      .op-cell-content {
+        flex: 1;
+        min-width: 0;
+
+        .op-cell-label {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.55);
+          margin-bottom: 1px;
+        }
+
+        .op-cell-value {
+          font-size: 15px;
+          font-weight: bold;
+          font-family: 'YJSZ', monospace;
+
+          span {
+            font-size: 9px;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.5);
+            margin-left: 2px;
+          }
+        }
+
+        .op-cell-deduct {
+          font-size: 9px;
+          color: #F56C6C;
+          margin-top: 1px;
+        }
+      }
+    }
+  }
+}
+
+@keyframes opScanMove {
+  0% { left: -60%; }
+  100% { left: 160%; }
+}
+
+@keyframes opCircleProgress {
+  0% { stroke-dasharray: 0, 100; }
+  100% { stroke-dasharray: 88.5, 100; }
+}
+
 .market-expansion-dialog-body {
   display: flex;
   flex-direction: column;
@@ -3007,6 +3515,100 @@ export default {
       border-radius: 1.5px;
       transition: width 0.3s ease;
     }
+  }
+}
+
+/* --- Group Operation Dialog CSS --- */
+.operation-dialog-summary-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  
+  .operation-summary-card {
+    flex: 1;
+    background: rgba(14, 40, 85, 0.6);
+    border: 1px solid rgba(41, 94, 151, 0.6);
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-align: center;
+    transition: all 0.3s;
+
+    &:hover {
+      border-color: rgba(0, 243, 255, 0.6);
+      box-shadow: 0 0 12px rgba(0, 243, 255, 0.2);
+    }
+
+    &.highlight {
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.12) 0%, rgba(27, 108, 255, 0.08) 100%);
+      border-color: rgba(0, 243, 255, 0.4);
+    }
+
+    .summary-label {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 6px;
+    }
+
+    .summary-value {
+      display: flex;
+      justify-content: center;
+      align-items: baseline;
+      gap: 3px;
+
+      .val {
+        font-size: 24px;
+        font-weight: bold;
+        color: #fff;
+        font-family: 'YJSZ', monospace;
+      }
+
+      .unit {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      &.cyan .val {
+        color: #00f3ff;
+        text-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+      }
+    }
+
+    .summary-tip {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 4px;
+    }
+  }
+}
+
+.sort-tip-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.deduct-tip {
+  font-size: 10px;
+  color: #F56C6C;
+  margin-left: 4px;
+}
+
+::v-deep .el-radio-group {
+  .el-radio-button__inner {
+    background: rgba(14, 40, 85, 0.5);
+    border-color: rgba(41, 94, 151, 0.5);
+    color: rgba(255, 255, 255, 0.85);
+    
+    &:hover {
+      color: #00f3ff;
+    }
+  }
+  
+  .el-radio-button__orig-radio:checked + .el-radio-button__inner {
+    background: rgba(0, 243, 255, 0.2);
+    border-color: #00f3ff;
+    color: #00f3ff;
+    box-shadow: -1px 0 0 0 #00f3ff;
   }
 }
 </style>

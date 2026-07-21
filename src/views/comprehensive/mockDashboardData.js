@@ -5,7 +5,7 @@ export const mockDataModel = {
   ref_inner: {
     left: [
       { title: '市场拓展-新签合同额', chartType: 'market_expansion', desc: '统计及深度分析年度新签合同指标及拓展完成情况。' },
-      { title: '核心合同金额分类构成', chartType: 'contract_breakdown', desc: '展示各类型工程（公路大修、桥隧、市政等）合同占比。' },
+      { title: '集团经营情况', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
       { title: '各区域中心市场拓展额', chartType: 'regional_market', desc: '反映各区域管理中心年内累计合同签约与市场拓展额。' }
     ],
     right: [
@@ -202,6 +202,37 @@ export function generateDrillData(chartType) {
           ]
         }]
       }
+    },
+    group_operation: {
+      kpis: [
+        { label: '本年度开累产值', value: '45,280.0', unit: '万元' },
+        { label: '本月产值金额', value: '6,520.0', unit: '万元' },
+        { label: '计量形象比', value: '88.5', unit: '%' },
+        { label: '产值收款比', value: '72.3', unit: '%' }
+      ],
+      columns: [
+        { prop: 'region', label: '区域/项目', width: '140px' },
+        { prop: 'accumValue', label: '年度累计产值(万)' },
+        { prop: 'reportedMeasure', label: '已上报计量(万)' },
+        { prop: 'approvedMeasure', label: '已批复计量(万)' },
+        { prop: 'deductAmount', label: '考核扣款(万)' },
+        { prop: 'prepayment', label: '已收预付款(万)' },
+        { prop: 'measurePayment', label: '已收计量款(万)' },
+        { prop: 'measureRatio', label: '计量形象比(%)' },
+        { prop: 'collectionRatio', label: '产值收款比(%)' }
+      ],
+      tableData: [
+        { region: '杭州区域中心', accumValue: '8,250.0', reportedMeasure: '7,420.5', approvedMeasure: '6,850.2', deductAmount: '120.5', prepayment: '500.0', measurePayment: '6,200.0', measureRatio: '89.7', collectionRatio: '81.2' },
+        { region: '绍兴区域中心', accumValue: '6,120.0', reportedMeasure: '5,510.4', approvedMeasure: '5,120.0', deductAmount: '95.2', prepayment: '350.0', measurePayment: '4,650.0', measureRatio: '90.2', collectionRatio: '81.3' },
+        { region: '金衢区域中心', accumValue: '5,840.0', reportedMeasure: '5,210.2', approvedMeasure: '4,850.0', deductAmount: '85.0', prepayment: '280.0', measurePayment: '4,320.0', measureRatio: '89.2', collectionRatio: '78.6' },
+        { region: '甬舟区域中心', accumValue: '5,420.0', reportedMeasure: '4,820.5', approvedMeasure: '4,420.0', deductAmount: '78.5', prepayment: '250.0', measurePayment: '3,950.0', measureRatio: '89.3', collectionRatio: '76.9' },
+        { region: '台州区域中心', accumValue: '4,850.0', reportedMeasure: '4,280.2', approvedMeasure: '3,920.0', deductAmount: '65.0', prepayment: '200.0', measurePayment: '3,480.0', measureRatio: '88.3', collectionRatio: '75.7' },
+        { region: '嘉兴区域中心', accumValue: '4,520.0', reportedMeasure: '3,950.8', approvedMeasure: '3,650.0', deductAmount: '58.0', prepayment: '180.0', measurePayment: '3,200.0', measureRatio: '87.4', collectionRatio: '74.8' },
+        { region: '温州区域中心', accumValue: '5,680.0', reportedMeasure: '5,020.5', approvedMeasure: '4,680.0', deductAmount: '92.0', prepayment: '320.0', measurePayment: '4,100.0', measureRatio: '88.4', collectionRatio: '77.6' },
+        { region: '湖州区域中心', accumValue: '3,850.0', reportedMeasure: '3,380.2', approvedMeasure: '3,120.0', deductAmount: '52.0', prepayment: '150.0', measurePayment: '2,780.0', measureRatio: '87.8', collectionRatio: '76.1' },
+        { region: '丽水区域中心', accumValue: '3,520.0', reportedMeasure: '3,050.0', approvedMeasure: '2,850.0', deductAmount: '45.0', prepayment: '120.0', measurePayment: '2,520.0', measureRatio: '86.6', collectionRatio: '75.0' }
+      ],
+      chartOption: {}
     },
     regional_market: {
       kpis: [
