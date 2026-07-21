@@ -1,0 +1,7 @@
+{
+  "name": "Lishui Maintenance Dashboard",
+  "description": "丽水养护看板 - A comprehensive monitoring dashboard for bridge, road, tunnel, and maintenance inspection management.",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

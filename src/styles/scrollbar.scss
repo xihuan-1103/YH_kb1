@@ -1,0 +1,76 @@
+$scrollbar-background: rgba(255, 255, 255, 0.3);
+$table-scrollbar-normal-width: 8px;
+$table-scrollbar-small-width: 6px;
+$table-scrollbar-track-color: #d3dce6;
+$table-scrollbar-thumb-color: #99a9bf;
+$scrollbar-border-radius: 4px;
+
+@mixin firefox-scrollbar() {
+  & {
+    scrollbar-width: auto;
+    scrollbar-color: $scrollbar-background transparent;
+  }
+}
+
+@mixin firefox-scrollbar-hidden() {
+  & {
+    scrollbar-width: none;
+  }
+}
+
+@mixin normal-scrollbar-y() {
+  &::-webkit-scrollbar {
+    width: $table-scrollbar-normal-width;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $scrollbar-background;
+    border-radius: $scrollbar-border-radius;
+  }
+  @include firefox-scrollbar();
+}
+
+@mixin normal-scrollbar-x() {
+  &::-webkit-scrollbar {
+    height: $table-scrollbar-normal-width;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $scrollbar-background;
+    border-radius: $scrollbar-border-radius;
+  }
+  @include firefox-scrollbar();
+}
+
+@mixin table-scrollbar-x() {
+  &::-webkit-scrollbar-track-piece {
+    background: transparent;
+  }
+  &::-webkit-scrollbar {
+    height: $table-scrollbar-normal-width;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: $scrollbar-background;
+    border-radius: $scrollbar-border-radius;
+  }
+  @include firefox-scrollbar();
+}
+
+@mixin hidden-x-scrollbar() {
+  &::-webkit-scrollbar {
+    height: 0 !important;
+  }
+}
+
+@mixin hidden-scrollbar() {
+  &::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+  }
+  @include firefox-scrollbar-hidden();
+}
+
+@mixin hidden-dialog-body-scrollbar() {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  @include firefox-scrollbar-hidden();
+}
