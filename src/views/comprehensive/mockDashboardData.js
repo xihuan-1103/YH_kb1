@@ -5,7 +5,6 @@ export const mockDataModel = {
   ref_inner: {
     left: [
       { title: '市场拓展-新签合同额', chartType: 'market_expansion', desc: '统计及深度分析年度新签合同指标及拓展完成情况。' },
-      { title: '进度预警', chartType: 'output_conversion', desc: '实时监控并轮播项目部应收款回款进度过慢、产值完成率过低、计量形象比过低等生产经营风险预警消息。' },
       { title: '合资公司情况', chartType: 'jv_companies', desc: '统计各合资公司的持股股权比例、交工委派人员数量及年度营业收入情况。' }
     ],
     right: [
