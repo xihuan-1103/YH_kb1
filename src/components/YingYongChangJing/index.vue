@@ -1,8 +1,5 @@
 <template>
   <div class="scene-container">
-    <div class="scene-title">
-      <span>应用场景</span>
-    </div>
     <div class="scene-wrap">
       <div class="scene-list">
         <div
@@ -12,8 +9,10 @@
           :class="{ active: item.path === currentPath }"
           @click="handleSceneClick(item)"
         >
-          <div class="scene-icon">
-            <i :class="item.icon"></i>
+          <div class="scene-cube-3d">
+            <div class="cube-top"></div>
+            <i :class="item.icon" class="cube-icon"></i>
+            <div class="cube-glow-halo"></div>
           </div>
           <div class="scene-name">{{ item.name }}</div>
         </div>
@@ -28,10 +27,13 @@ export default {
   data() {
     return {
       sceneList: [
-        { name: '路面', path: '/road', icon: 'el-icon-s-marketing' },
-        { name: '桥梁', path: '/bridge', icon: 'el-icon-s-platform' },
-        { name: '边坡', path: '/slope', icon: 'el-icon-s-grid' },
-        { name: '隧道', path: '/tunnel', icon: 'el-icon-s-finance' }
+        { name: '贸易云', path: '/comprehensive', icon: 'el-icon-box' },
+        { name: '金融云', path: '/finance', icon: 'el-icon-coin' },
+        { name: '公路云', path: '/road', icon: 'el-icon-guide' },
+        { name: '中心云', path: '/center', icon: 'el-icon-connection' },
+        { name: '轨道云', path: '/rail', icon: 'el-icon-school' },
+        { name: '商业云', path: '/business', icon: 'el-icon-shopping-bag-2' },
+        { name: '工程云', path: '/engineering', icon: 'el-icon-office-building' }
       ]
     }
   },
@@ -42,8 +44,8 @@ export default {
   },
   methods: {
     handleSceneClick(item) {
-      if (item.path !== this.currentPath) {
-        this.$router.push(item.path)
+      if (item.path !== this.currentPath && this.$router) {
+        this.$router.push(item.path).catch(() => {})
       }
     }
   }
@@ -55,90 +57,110 @@ export default {
 
 .scene-container {
   width: 100%;
-  height: 108px;
-  background: linear-gradient(0deg, rgba(22, 62, 112, 0.3) 0%, rgba(22, 62, 112, 0.9) 0%, rgba(24, 56, 108, 0.9) 100%);
+  height: 90px;
+  background: transparent;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  backdrop-filter: blur(10px);
-}
-
-.scene-title {
-  position: relative;
-  width: 40px;
-  min-width: 40px;
-  height: 100%;
-  background: linear-gradient(180deg, rgba(40, 87, 144, 0.9) 5%, rgba(40, 87, 144, 0.9) 96%);
-
-  > span {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: Microsoft YaHei;
-    width: 18px;
-    font-size: 18px;
-    font-weight: normal;
-    line-height: 20px;
-    color: #ffffff;
-  }
 }
 
 .scene-wrap {
-  width: calc(100% - 40px);
-  overflow-x: scroll;
+  width: 100%;
+  overflow-x: auto;
   @include normal-scrollbar-x();
-  padding: 0 20px;
+  padding: 0 10px;
 }
 
 .scene-list {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
-  height: 108px;
+  gap: 28px;
+  height: 85px;
 }
 
 .scene-item {
-  flex: 0 0 150px;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 
   &:hover {
-    .scene-icon {
-      transform: scale(1.1);
+    transform: translateY(-4px);
+
+    .scene-cube-3d {
+      box-shadow: 0 10px 25px rgba(0, 243, 255, 0.5), inset 0 0 15px rgba(0, 243, 255, 0.4);
+      border-color: #00f3ff;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.35) 0%, rgba(24, 144, 255, 0.5) 100%);
+
+      .cube-icon {
+        color: #ffffff;
+        transform: scale(1.15);
+      }
     }
-    .scene-name { color: #409EFF; }
+
+    .scene-name {
+      color: #00f3ff;
+      text-shadow: 0 0 8px rgba(0, 243, 255, 0.8);
+    }
   }
 
   &.active {
-    .scene-name { color: #409EFF; font-weight: 600; }
+    .scene-cube-3d {
+      background: linear-gradient(135deg, #1890ff 0%, #00f3ff 100%);
+      border-color: #ffffff;
+      box-shadow: 0 0 20px rgba(0, 243, 255, 0.8), inset 0 0 12px rgba(255, 255, 255, 0.5);
+
+      .cube-icon {
+        color: #ffffff;
+      }
+    }
+
+    .scene-name {
+      color: #ffffff;
+      font-weight: bold;
+      text-shadow: 0 0 10px rgba(0, 243, 255, 0.9);
+    }
   }
 }
 
-.scene-icon {
-  height: 66px;
-  margin-top: 10px;
+.scene-cube-3d {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, rgba(20, 60, 115, 0.8) 0%, rgba(10, 35, 75, 0.9) 100%);
+  border: 1.5px solid rgba(0, 243, 255, 0.5);
+  border-radius: 10px;
+  transform: rotate(-5deg) skewX(-2deg);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 4px;
-  transition: transform 0.3s;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  position: relative;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 243, 255, 0.2);
+  transition: all 0.3s ease;
 
-  > i {
-    font-size: 42px;
-    color: #58b2ff;
+  .cube-icon {
+    font-size: 22px;
+    color: #00f3ff;
+    transition: all 0.3s ease;
+  }
+
+  .cube-glow-halo {
+    position: absolute;
+    bottom: -6px;
+    width: 32px;
+    height: 6px;
+    background: radial-gradient(ellipse at center, rgba(0, 243, 255, 0.6) 0%, rgba(0, 243, 255, 0) 70%);
+    border-radius: 50%;
   }
 }
 
 .scene-name {
-  font-size: 14px;
-  color: #ffffff;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 8px;
   white-space: nowrap;
-  transition: color 0.3s;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
 }
 </style>

@@ -20,29 +20,18 @@
       </div>
     </div>
 
-    <!-- Map Control Selector Panel (Floating Right) -->
-    <div class="map-controls-panel">
-      <div class="panel-title">点位显示图层</div>
-      <div class="control-group">
-        <label 
+    <!-- Map Control Selector Panel (Floating Right - Pill Buttons) -->
+    <div class="map-controls-panel pill-style-panel">
+      <div class="pill-group">
+        <div 
           v-for="item in typeOptions" 
           :key="item.value"
-          class="control-item"
-          :class="{ active: selectedTypes.includes(item.value) }"
+          class="map-pill-btn"
+          :class="{ active: currentActiveType === item.value }"
+          @click="selectDistributionType(item.value)"
         >
-          <input 
-            type="checkbox" 
-            :value="item.value" 
-            v-model="selectedTypes" 
-            class="hidden-input"
-            @change="updateMarkers"
-          />
-          <span class="custom-toggle-btn">
-            <span class="indicator-dot" :class="item.value + '-dot'"></span>
-            <span class="label-text">{{ item.label }}</span>
-            <i class="el-icon-circle-check check-icon" v-if="selectedTypes.includes(item.value)"></i>
-          </span>
-        </label>
+          <span>{{ item.label }}</span>
+        </div>
       </div>
     </div>
 
@@ -278,11 +267,12 @@ export default {
           address: '四川省成都市温江区光华大道三段'
         }
       ],
-      selectedTypes: ['project', 'office', 'site'],
+      currentActiveType: null,
+      selectedTypes: [],
       typeOptions: [
-        { label: '项目所在', value: 'project' },
-        { label: '项目部地址所在', value: 'office' },
-        { label: '当前施工点位所在', value: 'site' }
+        { label: '项目分布', value: 'project' },
+        { label: '项目部所在分布', value: 'office' },
+        { label: '施工点位分布', value: 'site' }
       ]
     }
   },
@@ -310,6 +300,7 @@ export default {
     this.$nextTick(() => {
       setTimeout(() => {
         this.initMap()
+        this.$emit('distribution-change', null)
       }, 300)
     })
   },
@@ -320,6 +311,17 @@ export default {
     }
   },
   methods: {
+    selectDistributionType(val) {
+      if (this.currentActiveType === val) {
+        this.currentActiveType = null
+        this.selectedTypes = []
+      } else {
+        this.currentActiveType = val
+        this.selectedTypes = [val]
+      }
+      this.updateMarkers()
+      this.$emit('distribution-change', this.currentActiveType)
+    },
     initMap() {
       const container = this.$refs.mapContainer
       if (!container) return
@@ -629,107 +631,60 @@ export default {
   }
 }
 
-/* === Map Controls Panel (Floating Right) === */
-.map-controls-panel {
+/* === Map Controls Panel (Floating Pill Buttons matching 国际/国内/省内) === */
+.map-controls-panel.pill-style-panel {
   position: absolute;
-  top: 130px;
-  right: 35px;
-  z-index: 100;
-  background: rgba(6, 18, 40, 0.68);
-  border: 1.5px solid rgba(41, 94, 151, 0.6);
-  border-radius: 6px;
-  padding: 12px 16px;
-  backdrop-filter: blur(10px);
-  width: 180px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  top: 262px;
+  right: 540px;
+  z-index: 150;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  width: auto;
+  box-shadow: none;
 
-  .panel-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: #00f3ff;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(41, 94, 151, 0.3);
-    text-shadow: 0 0 6px rgba(0, 243, 255, 0.4);
-  }
-
-  .control-group {
+  .pill-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
-  .control-item {
+  .map-pill-btn {
+    min-width: 145px;
+    height: 38px;
+    padding: 0 16px;
+    background: rgba(10, 36, 75, 0.85);
+    border: 1.5px solid rgba(0, 243, 255, 0.6);
+    border-radius: 20px;
+    color: #00f3ff;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    position: relative;
-    display: block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 243, 255, 0.2);
+    backdrop-filter: blur(8px);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    user-select: none;
+    white-space: nowrap;
 
-    .hidden-input {
-      position: absolute;
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .custom-toggle-btn {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(14, 40, 85, 0.45);
-      border: 1px solid rgba(41, 94, 151, 0.4);
-      border-radius: 4px;
-      color: rgba(255, 255, 255, 0.7);
-      padding: 6px 10px;
-      font-size: 11px;
-      font-weight: 500;
-      transition: all 0.25s ease;
-      user-select: none;
-      
-      .indicator-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        flex-shrink: 0;
-
-        &.project-dot {
-          background: #00f3ff;
-          box-shadow: 0 0 4px #00f3ff;
-        }
-        &.office-dot {
-          background: #ffaa00;
-          box-shadow: 0 0 4px #ffaa00;
-        }
-        &.site-dot {
-          background: #ff3344;
-          box-shadow: 0 0 4px #ff3344;
-        }
-      }
-
-      .label-text {
-        white-space: nowrap;
-        flex-grow: 1;
-      }
-
-      .check-icon {
-        font-size: 11px;
-        color: #00f3ff;
-      }
-    }
-
-    &:hover .custom-toggle-btn {
-      border-color: rgba(0, 243, 255, 0.5);
-      background: rgba(14, 40, 85, 0.6);
-      color: #00f3ff;
+    &:hover {
+      border-color: #00f3ff;
+      box-shadow: 0 0 18px rgba(0, 243, 255, 0.7), inset 0 0 15px rgba(0, 243, 255, 0.35);
+      transform: translateX(-3px);
+      color: #ffffff;
     }
 
     &.active {
-      .custom-toggle-btn {
-        background: rgba(0, 243, 255, 0.1);
-        border-color: #00f3ff;
-        color: #fff;
-        font-weight: bold;
-        box-shadow: inset 0 0 5px rgba(0, 243, 255, 0.15);
-      }
+      background: linear-gradient(135deg, #1890ff 0%, #00d2ff 100%);
+      border-color: #ffffff;
+      color: #ffffff;
+      font-weight: bold;
+      box-shadow: 0 0 22px rgba(0, 243, 255, 0.9), inset 0 0 10px rgba(255, 255, 255, 0.5);
+      text-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
     }
   }
 }

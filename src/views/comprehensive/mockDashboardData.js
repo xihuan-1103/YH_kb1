@@ -6,13 +6,12 @@ export const mockDataModel = {
     left: [
       { title: '市场拓展-新签合同额', chartType: 'market_expansion', desc: '统计及深度分析年度新签合同指标及拓展完成情况。' },
       { title: '集团经营情况', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
-      { title: '各区域中心市场拓展额', chartType: 'regional_market', desc: '反映各区域管理中心年内累计合同签约与市场拓展额。' }
+      { title: '本年度经营完成情况', chartType: 'regional_market', desc: '展示本年度各月度计划与实际完成产值及完成达成率分析。' }
     ],
     right: [
-      { title: '集团核心项目信息看板', chartType: 'project_info', desc: '实时统计公司项目总数、在建与完工分布，以及日常、专项、全寿命、特殊项目的分类构成和明细。' },
       { title: '集团应收款情况', chartType: 'receivables_info', desc: '按区域统计应收款考核基数、本年收款、完成比例、未收款金额并支持下钻明细分析。' },
-      { title: '季度实物产值转化进度', chartType: 'output_conversion', desc: '分析各季度已完工实物量转化为产值的进度与效率。' },
-      { title: '集团经营回款周期率趋势', chartType: 'payment_collection', desc: '展现账期内工程回款率，评估资金周转与坏账控制。' }
+      { title: '进度预警', chartType: 'output_conversion', desc: '实时监控并轮播项目部应收款回款进度过慢、产值完成率过低、计量形象比过低等生产经营风险预警消息。' },
+      { title: '合资公司情况', chartType: 'jv_companies', desc: '统计各合资公司的持股股权比例、交工委派人员数量及年度营业收入情况。' }
     ]
   },
   wages_total: {
@@ -115,20 +114,78 @@ export function generateDrillData(chartType) {
     // ------------------- TAB 1 -------------------
     market_expansion: {
       kpis: [
-        { label: '上年度新签合同额', value: '28,500', unit: '万元' },
-        { label: '本年度目标', value: '35,000', unit: '万元' },
-        { label: '本年度开累', value: '26,800', unit: '万元' },
-        { label: '目标完成率', value: '76.57', unit: '%' }
+        { label: '本年度目标金额', value: '35,000', unit: '万元' },
+        { label: '本年度开累金额', value: '26,800', unit: '万元' },
+        { label: '目标完成进度', value: '76.57', unit: '%' }
       ],
       columns: [
         { prop: 'center', label: '区域中心' },
-        { prop: 'lastYear', label: '上年新签' },
+        { prop: 'lastYear', label: '上年完成' },
         { prop: 'target', label: '今年目标' },
         { prop: 'accumulated', label: '今年开累' },
         { prop: 'rate', label: '完成率(%)' }
       ],
       tableData: [],
-      chartOption: {}
+      chartOption: {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' }
+        },
+        grid: { top: '30px', bottom: '10px', left: '10px', right: '10px', containLabel: true },
+        legend: {
+          data: ['月度新签', '年度指标进度'],
+          textStyle: { color: 'rgba(255, 255, 255, 0.85)', fontSize: 10 },
+          top: '0%'
+        },
+        xAxis: {
+          type: 'category',
+          data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+          axisLabel: { color: 'rgba(255, 255, 255, 0.75)', fontSize: 10 }
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '金额(万)',
+            nameTextStyle: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 9 },
+            axisLabel: { color: 'rgba(255, 255, 255, 0.65)', fontSize: 9 },
+            splitLine: { lineStyle: { color: borderBlue } }
+          },
+          {
+            type: 'value',
+            name: '进度(%)',
+            max: 100,
+            nameTextStyle: { color: 'rgba(255, 255, 255, 0.6)', fontSize: 9 },
+            axisLabel: { color: 'rgba(255, 255, 255, 0.65)', fontSize: 9, formatter: '{value}%' },
+            splitLine: { show: false }
+          }
+        ],
+        series: [
+          {
+            name: '月度新签',
+            type: 'bar',
+            barWidth: '35%',
+            data: [3200, 2800, 4500, 5100, 5800, 5400],
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#00f3ff' },
+                { offset: 1, color: 'rgba(0, 243, 255, 0.1)' }
+              ]),
+              borderRadius: [3, 3, 0, 0]
+            }
+          },
+          {
+            name: '年度指标进度',
+            type: 'line',
+            yAxisIndex: 1,
+            smooth: true,
+            data: [9.14, 17.14, 30.00, 44.57, 61.14, 76.57],
+            itemStyle: { color: '#edbe75' },
+            lineStyle: { width: 2.5, color: '#edbe75' },
+            symbol: 'circle',
+            symbolSize: 5
+          }
+        ]
+      }
     },
     income_profit: {
       kpis: [
@@ -236,41 +293,122 @@ export function generateDrillData(chartType) {
     },
     regional_market: {
       kpis: [
-        { label: '区域中心总开拓额', value: '38,500.0', unit: '万元' },
-        { label: '领跑区域(莲都)', value: '11,480.0', unit: '万元' },
-        { label: '腰部平均签约额', value: '4,277.0', unit: '万元' },
-        { label: '签约合同项目数', value: '115', unit: '个' }
+        { label: '年度计划产值', value: '50,000.0', unit: '万元' },
+        { label: '年度实际产值', value: '45,280.0', unit: '万元' },
+        { label: '达成率', value: '90.56', unit: '%' },
+        { label: '月均实际完成产值', value: '4,116.4', unit: '万元' }
       ],
       columns: [
-        { prop: 'center', label: '区域中心', width: '130px' },
-        { prop: 'target', label: '年度考核目标(万)' },
-        { prop: 'actual', label: '实际开拓签约(万)' },
-        { prop: 'rate', label: '指标达成率(%)' }
+        { prop: 'month', label: '月份', width: '90px' },
+        { prop: 'planned', label: '计划产值(万元)' },
+        { prop: 'actual', label: '实际完成产值(万元)' },
+        { prop: 'rate', label: '月度达成率(%)' }
       ],
       tableData: [
-        { center: '莲都区域中心', target: '10,000.0', actual: '11,480.0', rate: '114.8' },
-        { center: '缙云区域中心', target: '6,000.0', actual: '6,520.4', rate: '108.6' },
-        { center: '龙泉区域中心', target: '5,000.0', actual: '4,890.1', rate: '97.8' },
-        { center: '青田区域中心', target: '5,000.0', actual: '4,120.5', rate: '82.4' },
-        { center: '遂昌区域中心', target: '3,000.0', actual: '3,210.6', rate: '107.0' },
-        { center: '云和区域中心', target: '2,500.0', actual: '2,680.3', rate: '107.2' }
+        { month: '1月', planned: '3,800.0', actual: '3,500.0', rate: '92.1' },
+        { month: '2月', planned: '4,000.0', actual: '3,900.0', rate: '97.5' },
+        { month: '3月', planned: '4,200.0', actual: '4,300.0', rate: '102.4' },
+        { month: '4月', planned: '4,100.0', actual: '4,000.0', rate: '97.6' },
+        { month: '5月', planned: '4,300.0', actual: '4,150.0', rate: '96.5' },
+        { month: '6月', planned: '4,500.0', actual: '4,680.0', rate: '104.0' },
+        { month: '7月', planned: '4,200.0', actual: '4,050.0', rate: '96.4' },
+        { month: '8月', planned: '4,400.0', actual: '4,250.0', rate: '96.6' },
+        { month: '9月', planned: '4,600.0', actual: '4,420.0', rate: '96.1' },
+        { month: '10月', planned: '4,300.0', actual: '4,120.0', rate: '95.8' },
+        { month: '11月', planned: '4,100.0', actual: '3,910.0', rate: '95.4' },
+        { month: '12月', planned: '3,500.0', actual: '0.0', rate: '0.0' }
       ],
       chartOption: {
-        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-        xAxis: { type: 'value', axisLabel: { color: textWhite }, splitLine: { lineStyle: { color: borderBlue } } },
-        yAxis: { type: 'category', data: ['云和', '遂昌', '青田', '龙泉', '缙云', '莲都'], axisLabel: { color: textWhite } },
-        series: [{
-          name: '开拓合同额(万)',
-          type: 'bar',
-          data: [2680, 3210, 4120, 4890, 6520, 11480],
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-              { offset: 0, color: 'rgba(27,108,255,0.2)' },
-              { offset: 1, color: mainCyan }
-            ]),
-            borderRadius: [0, 4, 4, 0]
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { type: 'shadow' },
+          formatter: function(params) {
+            let relVal = params[0].name + '<br/>'
+            for (let i = 0; i < params.length; i++) {
+              const unit = params[i].seriesType === 'line' ? '%' : '万元'
+              relVal += params[i].marker + params[i].seriesName + ': ' + params[i].value + ' ' + unit + '<br/>'
+            }
+            return relVal
           }
-        }]
+        },
+        legend: {
+          data: ['每月计划产值', '每月实际完成产值', '每月达成率'],
+          top: '0%',
+          right: '2%',
+          textStyle: { color: textWhite, fontSize: 10 },
+          itemWidth: 10,
+          itemHeight: 7,
+          itemGap: 8
+        },
+        grid: {
+          left: '2%',
+          right: '2%',
+          bottom: '3%',
+          top: '24%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+          axisLabel: { color: textWhite, fontSize: 9, interval: 0 },
+          axisLine: { lineStyle: { color: borderBlue } },
+          axisTick: { show: false }
+        },
+        yAxis: [
+          {
+            type: 'value',
+            name: '万元',
+            nameTextStyle: { color: textWhite, fontSize: 9, padding: [0, 0, 0, -10] },
+            axisLabel: { color: textWhite, fontSize: 9 },
+            splitLine: { lineStyle: { color: borderBlue } }
+          },
+          {
+            type: 'value',
+            name: '%',
+            min: 0,
+            max: 120,
+            nameTextStyle: { color: textWhite, fontSize: 9, padding: [0, -10, 0, 0] },
+            axisLabel: { color: textWhite, fontSize: 9 },
+            splitLine: { show: false }
+          }
+        ],
+        series: [
+          {
+            name: '每月计划产值',
+            type: 'bar',
+            data: [3800, 4000, 4200, 4100, 4300, 4500, 4200, 4400, 4600, 4300, 4100, 3500],
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(27, 108, 255, 0.85)' },
+                { offset: 1, color: 'rgba(27, 108, 255, 0.25)' }
+              ]),
+              borderRadius: [2, 2, 0, 0]
+            },
+            barGap: '15%'
+          },
+          {
+            name: '每月实际完成产值',
+            type: 'bar',
+            data: [3500, 3900, 4300, 4000, 4150, 4680, 4050, 4250, 4420, 4120, 3910, 0],
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#00f3ff' },
+                { offset: 1, color: 'rgba(0, 243, 255, 0.2)' }
+              ]),
+              borderRadius: [2, 2, 0, 0]
+            }
+          },
+          {
+            name: '每月达成率',
+            type: 'line',
+            yAxisIndex: 1,
+            data: [92.1, 97.5, 102.4, 97.6, 96.5, 104.0, 96.4, 96.6, 96.1, 95.8, 95.4, 0.0],
+            itemStyle: { color: '#edbe75' },
+            lineStyle: { width: 2, color: '#edbe75' },
+            symbol: 'circle',
+            symbolSize: 4
+          }
+        ]
       }
     },
     project_info: {
@@ -368,40 +506,43 @@ export function generateDrillData(chartType) {
         ]
       }
     },
-    payment_collection: {
+    jv_companies: {
       kpis: [
-        { label: '应收账款总余额', value: '18,520.4', unit: '万元' },
-        { label: '半年内回款率', value: '88.5', unit: '%' },
-        { label: '累计催收回款额', value: '15,480.0', unit: '万元' },
-        { label: '坏账准备计提率', value: '1.25', unit: '%' }
+        { label: '合资公司总数', value: '6', unit: '家' },
+        { label: '交工委派人员', value: '28', unit: '人' },
+        { label: '年度营业总收入', value: '28,450.0', unit: '万元' },
+        { label: '平均持股比例', value: '41.7', unit: '%' }
       ],
       columns: [
-        { prop: 'age', label: '账龄阶段', width: '130px' },
-        { prop: 'amount', label: '应收账款余额(万元)' },
-        { prop: 'ratio', label: '余额占比(%)' },
-        { prop: 'handled', label: '年内已催回(万元)' }
+        { prop: 'jvName', label: '合资公司名称', minWidth: '160px' },
+        { prop: 'share', label: '股权比例', width: '100px' },
+        { prop: 'staffCount', label: '交工委派人数', width: '120px' },
+        { prop: 'revenue', label: '年度营收(万元)', width: '130px' },
+        { prop: 'status', label: '状态', width: '80px' }
       ],
       tableData: [
-        { age: '0-3个月', amount: '12,410.5', ratio: '67.0', handled: '10,500.0' },
-        { age: '3-6个月', amount: '3,120.2', ratio: '16.8', handled: '2,650.2' },
-        { age: '6-12个月', amount: '1,842.1', ratio: '9.9', handled: '1,420.0' },
-        { age: '1-2年', amount: '842.8', ratio: '4.6', handled: '680.4' },
-        { age: '2年以上', amount: '304.8', ratio: '1.7', handled: '229.4' }
+        { jvName: '丽水缙云聚力沥青材料研发有限公司', share: '45.0%', staffCount: 6, revenue: '8,520.0', status: '正常' },
+        { jvName: '丽水市恒安交通路牌有限公司', share: '35.0%', staffCount: 4, revenue: '4,910.4', status: '正常' },
+        { jvName: '遂昌路安沥青拌合有限公司', share: '51.0%', staffCount: 8, revenue: '7,842.0', status: '正常' },
+        { jvName: '景宁交投新材料开发有限公司', share: '40.0%', staffCount: 3, revenue: '3,200.0', status: '正常' },
+        { jvName: '衢州浙交路桥养护工程有限公司', share: '49.0%', staffCount: 5, revenue: '2,680.0', status: '正常' },
+        { jvName: '台州三门交投沥青科技有限公司', share: '30.0%', staffCount: 2, revenue: '1,297.6', status: '筹建' }
       ],
       chartOption: {
         tooltip: { trigger: 'axis' },
-        xAxis: { type: 'category', data: ['3M内', '3-6M', '6-12M', '1-2年', '2年以上'], axisLabel: { color: textWhite } },
-        yAxis: { type: 'value', axisLabel: { color: textWhite }, splitLine: { lineStyle: { color: borderBlue } } },
+        xAxis: { type: 'category', data: ['缙云聚力', '恒安路牌', '遂昌路安', '景宁新材', '衢州浙交', '台州三门'], axisLabel: { color: textWhite, fontSize: 10 } },
+        yAxis: { type: 'value', name: '营收(万)', axisLabel: { color: textWhite, fontSize: 10 }, splitLine: { lineStyle: { color: borderBlue } } },
         series: [{
-          name: '应收余额(万)',
+          name: '年度营收(万)',
           type: 'bar',
           barWidth: '40%',
-          data: [12410, 3120, 1842, 842, 304],
+          data: [8520, 4910.4, 7842, 3200, 2680, 1297.6],
           itemStyle: {
             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: mainCyan },
-              { offset: 1, color: mainBlue }
-            ])
+              { offset: 0, color: mainGold },
+              { offset: 1, color: 'rgba(237, 190, 117, 0.2)' }
+            ]),
+            borderRadius: [4, 4, 0, 0]
           }
         }]
       }

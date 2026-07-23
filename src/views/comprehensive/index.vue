@@ -6,17 +6,81 @@
         <HeaderLayout>
           <template #left>
             <div class="header-left">
-              <span class="org-name">交科养护集团数字化大屏</span>
+              <div class="header-brand-tag">
+                <i class="el-icon-s-cooperation"></i>
+                <span>浙江交工研制</span>
+              </div>
+              <div class="header-hotline">
+                <i class="el-icon-phone-outline"></i>
+                <span>数字化服务热线</span>
+              </div>
             </div>
           </template>
+
           <template #middle>
-            <Logo leftTitle="交科养护集团" :rightTitle="currentTabName" />
+            <div class="header-center-title">
+              <div class="cockpit-subtitle">
+                <i class="el-icon-platform"></i>
+                <span>浙江交工 · 驾驶舱</span>
+              </div>
+              <div class="main-title-frame">
+                <div class="title-wing left"></div>
+                <div class="title-badge-box">
+                  <div class="zj-logo-badge">
+                    <i class="el-icon-office-building"></i>
+                    <span>浙江交工</span>
+                  </div>
+                  <div class="title-text-wrap">
+                    <span class="main-title-text">{{ currentTabName || '综合经营看板' }}</span>
+                    <i class="el-icon-sort swap-icon" title="切换视图"></i>
+                  </div>
+                </div>
+                <div class="title-wing right"></div>
+              </div>
+            </div>
           </template>
+
           <template #right>
-            <div class="right-menu">
-              <div class="header-decoration-wrap">
+            <div class="header-right-panel">
+              <div class="top-row">
                 <TimeCounter />
+                <el-dropdown trigger="click" class="user-dropdown">
+                  <span class="user-dropdown-link">
+                    周钦扬 <i class="el-icon-arrow-down"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
+                    <el-dropdown-item icon="el-icon-user">个人账号</el-dropdown-item>
+                    <el-dropdown-item icon="el-icon-setting">系统偏好</el-dropdown-item>
+                    <el-dropdown-item icon="el-icon-switch-button" divided>安全退出</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
                 <FullScreen />
+              </div>
+              <div class="bottom-row">
+                <el-dropdown trigger="click" class="filter-dropdown">
+                  <span class="dropdown-link">
+                    交工集团 <i class="el-icon-arrow-down"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
+                    <el-dropdown-item>交科养护集团</el-dropdown-item>
+                    <el-dropdown-item>浙江交工集团</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <span class="divider">|</span>
+                <el-dropdown trigger="click" class="filter-dropdown">
+                  <span class="dropdown-link">
+                    数据统计 <i class="el-icon-arrow-down"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
+                    <el-dropdown-item>经营月报</el-dropdown-item>
+                    <el-dropdown-item>产值季报</el-dropdown-item>
+                  </el-dropdown-menu>
+                </el-dropdown>
+                <span class="divider">|</span>
+                <div class="export-btn" @click="handleExportReport">
+                  <span>导出基础报表</span>
+                  <i class="el-icon-document-copy"></i>
+                </div>
               </div>
             </div>
           </template>
@@ -29,26 +93,361 @@
           :filterCompanies="filterCompanies" 
           :filterRegions="filterRegions" 
           :filterYears="filterYears"
+          @distribution-change="handleDistributionChange"
           ref="refMap"
         />
       </template>
 
-      <!-- 3. Top Executive Statistics (1/8 to 1/10 Height) -->
+      <!-- 3. Dynamic Top Indicators based on map distribution filter -->
       <template #top>
-        <div class="compact-stats-container">
-          <div class="stats-card" v-for="(stat, sIdx) in topStats" :key="sIdx">
-            <div class="stats-icon">
-              <i :class="stat.icon"></i>
-            </div>
-            <div class="stats-text">
-              <div class="stats-title">{{ stat.label }}</div>
-              <div class="stats-value-row">
-                <span class="value-num">{{ stat.value }}</span>
-                <span class="value-unit">{{ stat.unit }}</span>
-                <span class="value-ratio" :class="stat.trendClass">{{ stat.subText }}</span>
+        <div class="top-indicator-dashboard">
+
+          <!-- MODE 0: Default (No category selected) -> 一利五率 & 人员, 设备 -->
+          <template v-if="!currentDistributionType">
+            <!-- Line 1: 一利五率 (6 metrics) -->
+            <div class="indicator-row row-one-profit">
+              <div class="row-badge">
+                <i class="el-icon-trophy"></i>
+                <span>一利五率</span>
+              </div>
+              <div class="metrics-grid">
+                <div 
+                  class="metric-card" 
+                  v-for="(item, idx) in currentTopData.oneProfitFiveRatios" 
+                  :key="'r1-' + idx"
+                >
+                  <div class="metric-label">{{ item.label }}</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val" :class="item.color">{{ item.value }}</span>
+                    <span class="metric-unit">{{ item.unit }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+            <!-- Line 2: 人员情况 (Left) & 设备情况 (Right) -->
+            <div class="indicator-row row-modules">
+              <!-- Left Module: Personnel -->
+              <div class="status-module personnel-module">
+                <div class="module-title">
+                  <i class="el-icon-user-solid"></i>
+                  <span>人员情况</span>
+                </div>
+                <div class="module-body">
+                  <div class="stat-group">
+                    <span class="group-label">员工总数</span>
+                    <div class="group-val-wrap">
+                      <span class="group-val cyan">{{ currentTopData.personnel.total }}</span>
+                      <span class="group-unit">人</span>
+                    </div>
+                    <div class="breakdown-chips">
+                      <span class="chip">正式 <b class="gold">{{ currentTopData.personnel.regular }}</b> 人</span>
+                      <span class="chip">外包 <b class="blue">{{ currentTopData.personnel.outsourced }}</b> 人</span>
+                    </div>
+                  </div>
+                  <div class="module-v-divider"></div>
+                  <div class="stat-group single-stat">
+                    <span class="group-label">人均年龄</span>
+                    <div class="group-val-wrap">
+                      <span class="group-val gold">{{ currentTopData.personnel.avgAge }}</span>
+                      <span class="group-unit">岁</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Right Module: Equipment -->
+              <div class="status-module equipment-module">
+                <div class="module-title">
+                  <i class="el-icon-truck"></i>
+                  <span>设备情况</span>
+                </div>
+                <div class="module-body">
+                  <div class="stat-group">
+                    <span class="group-label">当前车辆总数</span>
+                    <div class="group-val-wrap">
+                      <span class="group-val cyan">{{ currentTopData.equipment.vehiclesTotal }}</span>
+                      <span class="group-unit">辆</span>
+                    </div>
+                    <div class="breakdown-chips">
+                      <span class="chip">在租车辆 <b class="gold">{{ currentTopData.equipment.vehiclesRented }}</b> 辆</span>
+                    </div>
+                  </div>
+                  <div class="module-v-divider"></div>
+                  <div class="stat-group">
+                    <span class="group-label">设备站外租在场</span>
+                    <div class="group-val-wrap">
+                      <span class="group-val green">{{ currentTopData.equipment.rentedOnSite }}</span>
+                      <span class="group-unit">台/套</span>
+                    </div>
+                    <div class="breakdown-chips">
+                      <span class="chip">本年累计租金 <b class="gold">{{ currentTopData.equipment.yearRentFee }}</b> 万元</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODE 1: 'project' (项目分布) -> 项目总数, 在建/完工项目部, 按管养区域统计 -->
+          <template v-else-if="currentDistributionType === 'project'">
+            <!-- Line 1: 项目与项目部汇总 -->
+            <div class="indicator-row row-one-profit">
+              <div class="row-badge">
+                <i class="el-icon-folder-opened"></i>
+                <span>项目分布</span>
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-label">项目总数</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val gold">{{ filteredCounts.projectTotal }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">在建项目部</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val cyan">{{ filteredCounts.activeOffice }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">完工项目部</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val green">{{ filteredCounts.completedOffice }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">在建占比</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val blue">{{ filteredCounts.activeRatio }}</span>
+                    <span class="metric-unit">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Line 2: 按管养区域统计 -->
+            <div class="indicator-row row-modules">
+              <div class="status-module full-width-module">
+                <div class="module-title">
+                  <i class="el-icon-map-location"></i>
+                  <span>管养区域分布统计</span>
+                </div>
+                <div class="module-body category-grid-4">
+                  <div class="cat-stat-box">
+                    <span class="box-dot provIn"></span>
+                    <div class="box-info">
+                      <span class="box-label">省内交投内</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val cyan">{{ filteredCounts.provIn }}</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <span class="box-dot provOut"></span>
+                    <div class="box-info">
+                      <span class="box-label">省内交投外</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val gold">{{ filteredCounts.provOut }}</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <span class="box-dot provOther"></span>
+                    <div class="box-info">
+                      <span class="box-label">省外区域</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val green">{{ filteredCounts.provOther }}</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <span class="box-dot abroad"></span>
+                    <div class="box-info">
+                      <span class="box-label">国外/跨境</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val blue">{{ filteredCounts.abroad }}</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODE 2: 'office' (项目部所在分布) -> 项目部数量及相关指标 -->
+          <template v-else-if="currentDistributionType === 'office'">
+            <!-- Line 1: 项目部概况 -->
+            <div class="indicator-row row-one-profit">
+              <div class="row-badge">
+                <i class="el-icon-office-building"></i>
+                <span>项目部</span>
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-card">
+                  <div class="metric-label">当前项目部总数</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val gold">{{ filteredCounts.officeTotal }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">在建运行项目部</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val cyan">{{ filteredCounts.runningOffice }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">完工/收尾项目部</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val green">{{ filteredCounts.finishOffice }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">平均配备人员</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val blue">{{ filteredCounts.avgStaff }}</span>
+                    <span class="metric-unit">人/部</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Line 2: 区域中心分布 -->
+            <div class="indicator-row row-modules">
+              <div class="status-module full-width-module">
+                <div class="module-title">
+                  <i class="el-icon-s-home"></i>
+                  <span>项目部区域中心分布</span>
+                </div>
+                <div class="module-body category-grid-5">
+                  <div class="cat-stat-box">
+                    <div class="box-info">
+                      <span class="box-label">浙东区域中心</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val cyan">24</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <div class="box-info">
+                      <span class="box-label">浙西区域中心</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val gold">22</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <div class="box-info">
+                      <span class="box-label">浙南区域中心</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val green">18</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <div class="box-info">
+                      <span class="box-label">浙北区域中心</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val blue">14</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box">
+                    <div class="box-info">
+                      <span class="box-label">省外及跨境</span>
+                      <div class="box-val-wrap">
+                        <span class="box-val cyan">8</span><span class="box-unit">个</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- MODE 3: 'site' (施工点位分布) -> 正在施工数量, 施工类型(日常/专项/其他), 封道情况(一类、二类、三类) -->
+          <template v-else-if="currentDistributionType === 'site'">
+            <!-- Line 1: 正在施工总数与类型 -->
+            <div class="indicator-row row-one-profit">
+              <div class="row-badge">
+                <i class="el-icon-guide"></i>
+                <span>施工点位</span>
+              </div>
+              <div class="metrics-grid">
+                <div class="metric-card highlight-card">
+                  <div class="metric-label">正在施工总数</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val cyan">{{ filteredCounts.siteTotal }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">日常养护点位</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val green">{{ filteredCounts.dailySite }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">专项工程点位</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val gold">{{ filteredCounts.specSite }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">其他应急点位</div>
+                  <div class="metric-val-wrap">
+                    <span class="metric-val blue">{{ filteredCounts.emerSite }}</span>
+                    <span class="metric-unit">个</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Line 2: 封道情况统计 (一类、二类、三类) -->
+            <div class="indicator-row row-modules">
+              <div class="status-module full-width-module">
+                <div class="module-title">
+                  <i class="el-icon-warning-outline"></i>
+                  <span>施工封道情况统计</span>
+                </div>
+                <div class="module-body category-grid-3">
+                  <div class="cat-stat-box alert-box-1">
+                    <div class="box-info">
+                      <span class="box-label">一类封道 <i class="label-sub">(主线全封闭)</i></span>
+                      <div class="box-val-wrap">
+                        <span class="box-val red">{{ filteredCounts.alert1 }}</span><span class="box-unit">处</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box alert-box-2">
+                    <div class="box-info">
+                      <span class="box-label">二类封道 <i class="label-sub">(借道/车道封)</i></span>
+                      <div class="box-val-wrap">
+                        <span class="box-val gold">{{ filteredCounts.alert2 }}</span><span class="box-unit">处</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cat-stat-box alert-box-3">
+                    <div class="box-info">
+                      <span class="box-label">三类封道 <i class="label-sub">(移动/肩道施工)</i></span>
+                      <div class="box-val-wrap">
+                        <span class="box-val cyan">{{ filteredCounts.alert3 }}</span><span class="box-unit">处</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
         </div>
       </template>
 
@@ -57,7 +456,11 @@
         <div class="sidebar-wrapper animate-left" :key="'left-' + activeTab">
           <div 
             class="card-item" 
-            :class="{ 'operation-card-item': item.chartType === 'group_operation' }"
+            :class="{ 
+              'market-card-item': item.chartType === 'market_expansion',
+              'operation-card-item': item.chartType === 'group_operation', 
+              'regional-card-item': item.chartType === 'regional_market' 
+            }"
             v-for="(item, idx) in currentTabConfig.left" 
             :key="'l-' + idx"
           >
@@ -74,9 +477,13 @@
                 </el-button>
               </template>
             </ScreenSubtitle>
-            <div class="chart-wrapper" :class="{ 'operation-chart-wrapper': item.chartType === 'group_operation' }">
+            <div class="chart-wrapper" :class="{ 
+              'market-chart-wrapper': item.chartType === 'market_expansion',
+              'operation-chart-wrapper': item.chartType === 'group_operation', 
+              'regional-chart-wrapper': item.chartType === 'regional_market' 
+            }">
               <div v-if="item.chartType === 'market_expansion'" class="market-expansion-card">
-                <!-- Highlight Row for Year Accumulated & Year Target -->
+                <!-- Highlight Row for Year Accumulated & Year Target & Target Rate -->
                 <div class="market-highlight-row">
                   <div class="highlight-item accumulated">
                     <div class="highlight-label">
@@ -96,112 +503,127 @@
                       <span class="highlight-unit">万元</span>
                     </div>
                   </div>
-                </div>
-                
-                <!-- Secondary Metrics Row -->
-                <div class="market-secondary-row">
-                  <div class="secondary-item">
-                    <span class="sec-label">上年度新签额</span>
-                    <span class="sec-value">28,500 <span class="sec-unit">万</span></span>
-                  </div>
-                  <div class="secondary-divider"></div>
-                  <div class="secondary-item">
-                    <span class="sec-label">本月新增签约</span>
-                    <span class="sec-value">3,200 <span class="sec-unit">万</span></span>
+                  <div class="highlight-item rate">
+                    <div class="highlight-label">
+                      <span class="dot">●</span>目标完成进度
+                    </div>
+                    <div class="highlight-value-wrap">
+                      <span class="highlight-value highlight-gold">76.57</span>
+                      <span class="highlight-unit">%</span>
+                    </div>
                   </div>
                 </div>
 
-                <!-- Unified Progress Bar showing completion percentage -->
-                <div class="market-progress-container">
-                  <div class="progress-bar-label">
-                    <span class="label-txt">年度指标目标完成进度</span>
-                    <span class="progress-val">76.57%</span>
-                  </div>
-                  <div class="custom-progress-bg">
-                    <div class="custom-progress-fill" style="width: 76.57%">
-                      <div class="progress-glare"></div>
+                <!-- Monthly New Contract Amount + Target Progress Line EChart -->
+                <div :ref="'leftChart' + idx" class="echart-box-sub market-chart-sub"></div>
+              </div>
+              <div v-else-if="item.chartType === 'group_operation'" class="group-operation-card">
+                <!-- 1. 顶部：四个关键指标数据 (开累产值, 已上报计量, 已收预付款, 已收计量款) -->
+                <div class="op-metrics-grid">
+                  <div class="op-metric-cell accum">
+                    <div class="metric-icon"><i class="el-icon-s-data"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">开累产值</div>
+                      <div class="metric-value">45,280 <span class="unit">万</span></div>
                     </div>
+                  </div>
+                  <div class="op-metric-cell reported">
+                    <div class="metric-icon"><i class="el-icon-upload2"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已上报计量</div>
+                      <div class="metric-value">38,150 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-metric-cell prepayment">
+                    <div class="metric-icon"><i class="el-icon-wallet"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已收预付款</div>
+                      <div class="metric-value">2,170 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-metric-cell payment">
+                    <div class="metric-icon"><i class="el-icon-money"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已收计量款</div>
+                      <div class="metric-value">32,770 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. 下部：仪表图展示计量形象比、收款计量比 -->
+                <div class="op-gauges-row">
+                  <!-- 仪表图 1: 计量形象比 -->
+                  <div class="op-gauge-item">
+                    <div class="gauge-dial-wrap">
+                      <svg viewBox="0 0 120 70" class="gauge-svg">
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="7" stroke-linecap="round" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(0, 243, 255, 0.25)" stroke-width="7" stroke-dasharray="2 5" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="url(#gaugeCyanGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="119.1 141.37" />
+                        <defs>
+                          <linearGradient id="gaugeCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#1b6cff" />
+                            <stop offset="100%" stop-color="#00f3ff" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div class="gauge-center-val cyan">
+                        84.25<span class="unit">%</span>
+                      </div>
+                    </div>
+                    <div class="gauge-label">计量形象比</div>
+                    <div class="gauge-sub">已上报计量 / 产值</div>
+                  </div>
+
+                  <!-- 仪表图 2: 收款计量比 -->
+                  <div class="op-gauge-item">
+                    <div class="gauge-dial-wrap">
+                      <svg viewBox="0 0 120 70" class="gauge-svg">
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="7" stroke-linecap="round" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(237, 190, 117, 0.25)" stroke-width="7" stroke-dasharray="2 5" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="url(#gaugeGoldGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="109.1 141.37" />
+                        <defs>
+                          <linearGradient id="gaugeGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#e6a23c" />
+                            <stop offset="100%" stop-color="#edbe75" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div class="gauge-center-val gold">
+                        77.16<span class="unit">%</span>
+                      </div>
+                    </div>
+                    <div class="gauge-label">收款计量比</div>
+                    <div class="gauge-sub">(已收计量款+已收预付款) / 产值</div>
                   </div>
                 </div>
               </div>
-              <div v-else-if="item.chartType === 'group_operation'" class="group-operation-card">
-                <!-- 顶部：本年度开累产值大卡片 -->
-                <div class="op-main-value-card">
-                  <div class="op-main-icon">
-                    <i class="el-icon-s-data"></i>
-                  </div>
-                  <div class="op-main-content">
-                    <div class="op-main-label">本年度开累产值</div>
-                    <div class="op-main-value">
-                      <span class="op-main-num">45,280</span>
-                      <span class="op-main-unit">万元</span>
+              <div v-else-if="item.chartType === 'regional_market'" class="regional-market-card">
+                <!-- Top 3 Key Metrics Summary -->
+                <div class="annual-op-summary-row">
+                  <div class="op-summary-item planned">
+                    <div class="op-summary-label"><i class="el-icon-date"></i> 年度计划产值</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num">50,000</span>
+                      <span class="op-summary-unit">万元</span>
                     </div>
                   </div>
-                  <div class="op-main-scan"></div>
-                </div>
-
-                <!-- 中部：本月产值 + 计量形象比 -->
-                <div class="op-sub-row">
-                  <div class="op-sub-card month-value">
-                    <div class="op-sub-icon"><i class="el-icon-date"></i></div>
-                    <div class="op-sub-info">
-                      <div class="op-sub-label">本月产值</div>
-                      <div class="op-sub-value">
-                        <span class="op-sub-num">6,520</span>
-                        <span class="op-sub-unit">万</span>
-                      </div>
+                  <div class="op-summary-item actual">
+                    <div class="op-summary-label"><i class="el-icon-circle-check"></i> 年度实际产值</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num">45,280</span>
+                      <span class="op-summary-unit">万元</span>
                     </div>
                   </div>
-                  <div class="op-sub-card ratio-value">
-                    <div class="op-sub-icon"><i class="el-icon-odometer"></i></div>
-                    <div class="op-sub-info">
-                      <div class="op-sub-label">计量形象比</div>
-                      <div class="op-sub-value">
-                        <span class="op-sub-num">88.5</span>
-                        <span class="op-sub-unit">%</span>
-                      </div>
-                    </div>
-                    <div class="op-ratio-ring">
-                      <svg viewBox="0 0 36 36" class="circular-chart">
-                        <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="circle" stroke-dasharray="88.5, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
+                  <div class="op-summary-item rate">
+                    <div class="op-summary-label"><i class="el-icon-trophy"></i> 达成率</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num highlight-cyan">90.56</span>
+                      <span class="op-summary-unit">%</span>
                     </div>
                   </div>
                 </div>
-
-                <!-- 底部：计量情况 4 个指标 -->
-                <div class="op-measure-grid">
-                  <div class="op-measure-cell reported">
-                    <div class="op-cell-icon"><i class="el-icon-upload2"></i></div>
-                    <div class="op-cell-content">
-                      <div class="op-cell-label">已上报计量</div>
-                      <div class="op-cell-value">38,150 <span>万</span></div>
-                    </div>
-                  </div>
-                  <div class="op-measure-cell approved">
-                    <div class="op-cell-icon"><i class="el-icon-check"></i></div>
-                    <div class="op-cell-content">
-                      <div class="op-cell-label">已批复计量</div>
-                      <div class="op-cell-value">35,100 <span>万</span></div>
-                      <div class="op-cell-deduct">扣款 586 万</div>
-                    </div>
-                  </div>
-                  <div class="op-measure-cell prepayment">
-                    <div class="op-cell-icon"><i class="el-icon-wallet"></i></div>
-                    <div class="op-cell-content">
-                      <div class="op-cell-label">已收预付款</div>
-                      <div class="op-cell-value">2,170 <span>万</span></div>
-                    </div>
-                  </div>
-                  <div class="op-measure-cell payment">
-                    <div class="op-cell-icon"><i class="el-icon-money"></i></div>
-                    <div class="op-cell-content">
-                      <div class="op-cell-label">已收计量款</div>
-                      <div class="op-cell-value">32,770 <span>万</span></div>
-                    </div>
-                  </div>
-                </div>
+                <!-- EChart Container -->
+                <div :ref="'leftChart' + idx" class="echart-box-sub"></div>
               </div>
               <div v-else :ref="'leftChart' + idx" class="echart-box"></div>
             </div>
@@ -216,7 +638,7 @@
             class="card-item" 
             v-for="(item, idx) in currentTabConfig.right" 
             :key="'r-' + idx"
-            :class="{ 'receivables-card-item': item.chartType === 'receivables_info' }"
+            :class="{ 'receivables-card-item': item.chartType === 'receivables_info', 'jv-card-item': item.chartType === 'jv_companies' }"
           >
             <ScreenSubtitle :name="item.title">
               <template #right>
@@ -231,7 +653,7 @@
                 </el-button>
               </template>
             </ScreenSubtitle>
-            <div class="chart-wrapper" :class="{ 'receivables-chart-wrapper': item.chartType === 'receivables_info' }">
+            <div class="chart-wrapper" :class="{ 'receivables-chart-wrapper': item.chartType === 'receivables_info', 'jv-chart-wrapper': item.chartType === 'jv_companies' }">
               <!-- Case 1: Project Info -->
               <div v-if="item.chartType === 'project_info'" class="project-info-side-card">
                 <!-- Summary Row -->
@@ -250,45 +672,45 @@
                   </div>
                 </div>
 
-                <!-- 4 Categories Grid -->
+                <!-- 4 Categories Grid (管养区域: 省内交投内, 省内交投外, 省外, 国外) -->
                 <div class="proj-categories-grid">
                   <div class="cat-progress-item">
                     <div class="cat-header">
-                      <span class="cat-name"><span class="cat-dot daily"></span>日常项目</span>
-                      <span class="cat-num">156个 (52.0%)</span>
+                      <span class="cat-name"><span class="cat-dot provIn"></span>省内交投内</span>
+                      <span class="cat-num">182个 (60.7%)</span>
                     </div>
                     <div class="cat-bar-bg">
-                      <div class="cat-bar-fill daily" style="width: 52%"></div>
+                      <div class="cat-bar-fill provIn" style="width: 60.7%"></div>
                     </div>
                   </div>
 
                   <div class="cat-progress-item">
                     <div class="cat-header">
-                      <span class="cat-name"><span class="cat-dot special"></span>专项项目</span>
-                      <span class="cat-num">84个 (28.0%)</span>
+                      <span class="cat-name"><span class="cat-dot provOut"></span>省内交投外</span>
+                      <span class="cat-num">68个 (22.7%)</span>
                     </div>
                     <div class="cat-bar-bg">
-                      <div class="cat-bar-fill special" style="width: 28%"></div>
+                      <div class="cat-bar-fill provOut" style="width: 22.7%"></div>
                     </div>
                   </div>
 
                   <div class="cat-progress-item">
                     <div class="cat-header">
-                      <span class="cat-name"><span class="cat-dot fullLife"></span>全寿命/全域</span>
-                      <span class="cat-num">42个 (14.0%)</span>
+                      <span class="cat-name"><span class="cat-dot outProv"></span>省外</span>
+                      <span class="cat-num">38个 (12.7%)</span>
                     </div>
                     <div class="cat-bar-bg">
-                      <div class="cat-bar-fill fullLife" style="width: 14%"></div>
+                      <div class="cat-bar-fill outProv" style="width: 12.7%"></div>
                     </div>
                   </div>
 
                   <div class="cat-progress-item">
                     <div class="cat-header">
-                      <span class="cat-name"><span class="cat-dot unique"></span>特殊项目</span>
-                      <span class="cat-num">18个 (6.0%)</span>
+                      <span class="cat-name"><span class="cat-dot abroad"></span>国外</span>
+                      <span class="cat-num">12个 (3.9%)</span>
                     </div>
                     <div class="cat-bar-bg">
-                      <div class="cat-bar-fill unique" style="width: 6%"></div>
+                      <div class="cat-bar-fill abroad" style="width: 3.9%"></div>
                     </div>
                   </div>
                 </div>
@@ -346,7 +768,114 @@
                 </div>
               </div>
 
-              <!-- Case 3: Echarts Fallback -->
+              <!-- Case 3: Progress Warning Carousel Card -->
+              <div v-else-if="item.chartType === 'output_conversion'" class="progress-warning-card">
+                <!-- Top Warning Header Stats -->
+                <div class="warning-stats-header">
+                  <div class="warning-badge-total">
+                    <i class="el-icon-warning-outline"></i>
+                    <span>实时预警 <b>{{ warningList.length }}</b> 项</span>
+                  </div>
+                  <div class="warning-badge-counts">
+                    <span class="count-tag danger">严重 {{ dangerCount }}</span>
+                    <span class="count-tag warning">警告 {{ warningCount }}</span>
+                    <span class="count-tag info">提示 {{ infoCount }}</span>
+                  </div>
+                </div>
+
+                <!-- Featured Active Warning Carousel Body -->
+                <div 
+                  class="warning-carousel-body"
+                  @mouseenter="stopWarningTimer"
+                  @mouseleave="startWarningTimer"
+                >
+                  <transition name="warning-slide" mode="out-in">
+                    <div 
+                      :key="currentWarning.id" 
+                      class="active-warning-box"
+                      :class="currentWarning.level"
+                    >
+                      <div class="active-warning-top">
+                        <span class="warning-type-tag" :class="currentWarning.level">
+                          <i :class="currentWarning.level === 'danger' ? 'el-icon-error' : currentWarning.level === 'warning' ? 'el-icon-warning' : 'el-icon-info'"></i>
+                          {{ currentWarning.category }}
+                        </span>
+                        <span class="warning-dept"><i class="el-icon-office-building"></i> {{ currentWarning.dept }}</span>
+                        <span class="warning-time">{{ currentWarning.time }}</span>
+                      </div>
+                      <div class="active-warning-title">{{ currentWarning.title }}</div>
+                      <div class="active-warning-desc">{{ currentWarning.desc }}</div>
+                    </div>
+                  </transition>
+
+                  <!-- Carousel Control Dots -->
+                  <div class="warning-carousel-controls">
+                    <div 
+                      v-for="(wItem, wIdx) in warningList" 
+                      :key="wItem.id"
+                      class="control-dot"
+                      :class="{ active: wIdx === activeWarningIndex, [wItem.level]: true }"
+                      @click="activeWarningIndex = wIdx"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Case 4: Joint Venture Companies Status -->
+              <div v-else-if="item.chartType === 'jv_companies'" class="jv-companies-card">
+                <!-- Summary Bar -->
+                <div class="jv-summary-bar">
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">合资公司</span>
+                    <span class="jv-sum-val cyan">6 <span class="unit">家</span></span>
+                  </div>
+                  <div class="jv-sum-divider"></div>
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">交工委派</span>
+                    <span class="jv-sum-val blue">28 <span class="unit">人</span></span>
+                  </div>
+                  <div class="jv-sum-divider"></div>
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">年度总营收</span>
+                    <span class="jv-sum-val gold">2.85 <span class="unit">亿元</span></span>
+                  </div>
+                </div>
+
+                <!-- JV List Container -->
+                <div class="jv-list-container">
+                  <div class="jv-list-header">
+                    <span class="col-name">合资公司名称</span>
+                    <span class="col-share">股权比例</span>
+                    <span class="col-staff">委派人员</span>
+                    <span class="col-revenue">年度营收</span>
+                  </div>
+                  <div class="jv-list-body custom-scrollbar">
+                    <div 
+                      v-for="(jv, jvIdx) in jvCompanyList" 
+                      :key="jvIdx" 
+                      class="jv-row-item"
+                    >
+                      <div class="col-name" :title="jv.jvName">
+                        <span class="dot"></span>
+                        <span class="name-text">{{ jv.jvName }}</span>
+                      </div>
+                      <div class="col-share">
+                        <span class="share-badge" :class="getShareBadgeClass(jv.shareNum)">{{ jv.share }}</span>
+                      </div>
+                      <div class="col-staff">
+                        <i class="el-icon-user"></i>
+                        <span class="staff-num">{{ jv.staffCount }}人</span>
+                      </div>
+                      <div class="col-revenue">
+                        <span class="rev-num">{{ jv.revenue }}</span>
+                        <span class="rev-unit">万</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Case 5: Echarts Fallback -->
               <div v-else :ref="'rightChart' + idx" class="echart-box"></div>
             </div>
           </div>
@@ -365,23 +894,18 @@
                 <span>养护资质</span>
               </span>
               <div class="checkbox-group">
-                <label 
+                <div 
                   v-for="company in companyOptions" 
                   :key="company"
                   class="cyber-checkbox-label"
                   :class="{ checked: filterCompanies.includes(company) }"
+                  @click="selectCompanyFilter(company)"
                 >
-                  <input 
-                    type="checkbox" 
-                    :value="company" 
-                    v-model="filterCompanies" 
-                    class="hidden-input"
-                  />
                   <span class="custom-checkbox-btn">
                     <i class="el-icon-check" v-if="filterCompanies.includes(company)"></i>
                     {{ company }}
                   </span>
-                </label>
+                </div>
               </div>
 
               <!-- Reset Button -->
@@ -405,23 +929,18 @@
                 <span>区域中心</span>
               </span>
               <div class="checkbox-group">
-                <label 
+                <div 
                   v-for="region in regionOptions" 
                   :key="region"
                   class="cyber-checkbox-label"
                   :class="{ checked: filterRegions.includes(region) }"
+                  @click="selectRegionFilter(region)"
                 >
-                  <input 
-                    type="checkbox" 
-                    :value="region" 
-                    v-model="filterRegions" 
-                    class="hidden-input"
-                  />
                   <span class="custom-checkbox-btn">
                     <i class="el-icon-check" v-if="filterRegions.includes(region)"></i>
                     {{ region }}
                   </span>
-                </label>
+                </div>
               </div>
             </div>
 
@@ -483,8 +1002,8 @@
     <el-dialog
       :title="detailDialogTitle"
       :visible.sync="detailDialogVisible"
-      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? '80%' : '1000px'"
-      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? 'market-dialog-large' : ''"
+      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? '80%' : '1000px'"
+      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? 'market-dialog-large' : ''"
       append-to-body
       class="detail-drill-dialog"
       @opened="handleDialogOpened"
@@ -492,8 +1011,8 @@
     >
       <div class="dialog-drill-container" v-if="activeDetailItem">
         
-        <!-- Custom layout for market_expansion -->
-        <div v-if="activeDetailItem.chartType === 'market_expansion'" class="market-expansion-dialog-body">
+        <!-- Custom layout for market_expansion & regional_market -->
+        <div v-if="activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market'" class="market-expansion-dialog-body">
           
           <!-- Top Row: Left (Table) & Right (Pie Chart) -->
           <div class="market-top-row">
@@ -501,11 +1020,11 @@
             <div class="market-section-block top-left-panel">
               <div class="market-section-title">
                 <span class="title-decorator"></span>
-                <span>一、区域中心指标明细账目 (降序排列)</span>
+                <span>一、{{ activeDetailItem.chartType === 'regional_market' ? '九大区域中心产值完成明细账目 (降序排列)' : '区域中心指标明细账目 (降序排列)' }}</span>
               </div>
               <div class="table-container">
                 <el-table 
-                  :data="marketRegionTableData" 
+                  :data="activeDetailItem.chartType === 'regional_market' ? regionalMarketTableData : marketRegionTableData" 
                   stripe 
                   size="mini"
                   height="100%"
@@ -513,10 +1032,10 @@
                   class="custom-image-style-table"
                 >
                   <el-table-column prop="center" label="区域中心" width="110px" />
-                  <el-table-column prop="lastYear" label="上年新签(万)" sortable />
-                  <el-table-column prop="target" label="今年目标(万)" sortable />
-                  <el-table-column prop="accumulated" label="今年开累(万)" sortable />
-                  <el-table-column prop="rate" label="目标完成率" sortable width="100px">
+                  <el-table-column prop="lastYear" :label="activeDetailItem.chartType === 'regional_market' ? '上年完成(万)' : '上年新签(万)'" sortable />
+                  <el-table-column prop="target" :label="activeDetailItem.chartType === 'regional_market' ? '今年计划(万)' : '今年目标(万)'" sortable />
+                  <el-table-column prop="accumulated" :label="activeDetailItem.chartType === 'regional_market' ? '今年产值(万)' : '今年开累(万)'" sortable />
+                  <el-table-column prop="rate" :label="activeDetailItem.chartType === 'regional_market' ? '达成率' : '目标完成率'" sortable width="100px">
                     <template slot-scope="scope">
                       <span style="color: #00f3ff; font-weight: bold;">{{ scope.row.rate }}%</span>
                     </template>
@@ -530,7 +1049,7 @@
             <div class="market-section-block top-right-panel">
               <div class="market-section-title">
                 <span class="title-decorator"></span>
-                <span>二、承接资质本年开累金额占比</span>
+                <span>二、{{ activeDetailItem.chartType === 'regional_market' ? '三大承接资质完成产值占比' : '承接资质本年开累金额占比' }}</span>
               </div>
               <div class="pie-chart-wrapper">
                 <div ref="dialogChartQual" style="height: 100%; width: 100%;"></div>
@@ -653,19 +1172,19 @@
             </div>
           </div>
 
-          <!-- Bottom Row: 项目类型管养与下辖明细 -->
+          <!-- Bottom Row: 管养区域与下辖明细 -->
           <div class="market-section-block bottom-panel">
             <div class="market-section-title">
               <span class="title-decorator"></span>
-              <span>三、项目类型管养维度深度分析</span>
+              <span>三、管养区域维度深度分析</span>
             </div>
 
             <div class="scope-split-container">
-              <!-- Left: Category list (日常, 专项, 全寿命, 特殊) -->
+              <!-- Left: Category list (省内交投内, 省内交投外, 省外, 国外) -->
               <div class="scope-left-panel">
                 <div class="panel-subtitle">
                   <i class="el-icon-folder-opened"></i>
-                  <span>项目类型统计 (点击大类查看下辖明细)</span>
+                  <span>管养区域统计 (点击大类查看下辖明细)</span>
                 </div>
                 <div class="scope-interactive-cards">
                   <div 
@@ -696,7 +1215,7 @@
               <div class="scope-right-panel">
                 <div class="panel-subtitle">
                   <i class="el-icon-tickets"></i>
-                  <span>【{{ selectedScopeKey === 'daily' ? '日常项目' : selectedScopeKey === 'special' ? '专项项目' : selectedScopeKey === 'fullLife' ? '全寿命/全域' : '特殊项目' }}】具体项目明细账目</span>
+                  <span>【{{ selectedScopeKey === 'provIn' ? '省内交投内' : selectedScopeKey === 'provOut' ? '省内交投外' : selectedScopeKey === 'outProv' ? '省外' : '国外' }}】具体项目明细账目</span>
                 </div>
 
                 <div class="scope-table-container">
@@ -738,28 +1257,28 @@
                 <span class="unit">万元</span>
               </div>
             </div>
-            <div class="operation-summary-card">
-              <div class="summary-label">本月产值</div>
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">已上报计量</div>
               <div class="summary-value">
-                <span class="val">6,520</span>
+                <span class="val">38,150</span>
                 <span class="unit">万元</span>
               </div>
             </div>
             <div class="operation-summary-card highlight">
               <div class="summary-label">计量形象比</div>
               <div class="summary-value cyan">
-                <span class="val">88.5</span>
+                <span class="val">84.25</span>
                 <span class="unit">%</span>
               </div>
-              <div class="summary-tip">上报计量/产值</div>
+              <div class="summary-tip">上报计量 / 产值</div>
             </div>
             <div class="operation-summary-card">
-              <div class="summary-label">产值收款比</div>
-              <div class="summary-value">
-                <span class="val">72.3</span>
+              <div class="summary-label">收款计量比</div>
+              <div class="summary-value gold">
+                <span class="val">77.16</span>
                 <span class="unit">%</span>
               </div>
-              <div class="summary-tip">(已收计量款+已收预付款)/产值</div>
+              <div class="summary-tip">(已收计量款+已收预付款) / 产值</div>
             </div>
           </div>
 
@@ -774,7 +1293,7 @@
               <span class="sort-tip-label">排序方式：</span>
               <el-radio-group v-model="operationSortType" size="mini" fill="#00f3ff">
                 <el-radio-button label="measureRatio">按计量形象比降序</el-radio-button>
-                <el-radio-button label="collectionRatio">按产值收款比降序</el-radio-button>
+                <el-radio-button label="collectionRatio">按收款计量比降序</el-radio-button>
               </el-radio-group>
             </div>
 
@@ -803,7 +1322,7 @@
                     <span style="color: #00f3ff; font-weight: bold;">{{ scope.row.measureRatio }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="collectionRatio" label="产值收款比(%)" sortable width="120px">
+                <el-table-column prop="collectionRatio" label="收款计量比(%)" sortable width="120px">
                   <template slot-scope="scope">
                     <span :style="{ color: parseFloat(scope.row.collectionRatio) >= 80 ? '#67C23A' : parseFloat(scope.row.collectionRatio) >= 70 ? '#E6A23C' : '#F56C6C' }">
                       {{ scope.row.collectionRatio }}
@@ -814,6 +1333,72 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Custom layout for jv_companies -->
+        <div v-else-if="activeDetailItem.chartType === 'jv_companies'" class="market-expansion-dialog-body">
+          <div class="operation-dialog-summary-row">
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">合资公司总数</div>
+              <div class="summary-value cyan">
+                <span class="val">6</span>
+                <span class="unit">家</span>
+              </div>
+            </div>
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">交工委派人员</div>
+              <div class="summary-value">
+                <span class="val">28</span>
+                <span class="unit">人</span>
+              </div>
+            </div>
+            <div class="operation-summary-card highlight">
+              <div class="summary-label">年度总营业收入</div>
+              <div class="summary-value gold">
+                <span class="val">28,450.0</span>
+                <span class="unit">万元</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="market-section-block" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="market-section-title">
+              <span class="title-decorator"></span>
+              <span>合资公司股权比例、委派人员及经营状况明细表</span>
+            </div>
+            <div class="table-container" style="flex: 1;">
+              <el-table 
+                :data="jvCompanyList" 
+                stripe 
+                size="mini"
+                height="100%"
+                style="width: 100%"
+                class="custom-image-style-table"
+              >
+                <el-table-column prop="jvName" label="合资公司名称" min-width="200px" />
+                <el-table-column prop="share" label="股权比例" width="120px" sortable>
+                  <template slot-scope="scope">
+                    <span class="share-badge" :class="getShareBadgeClass(scope.row.shareNum)">{{ scope.row.share }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="staffCount" label="交工委派人员(人)" width="150px" sortable>
+                  <template slot-scope="scope">
+                    <span style="color: #00f3ff; font-weight: bold;"><i class="el-icon-user"></i> {{ scope.row.staffCount }} 人</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="revenue" label="年度营业收入(万元)" width="170px" sortable>
+                  <template slot-scope="scope">
+                    <span style="color: #edbe75; font-weight: bold;">{{ scope.row.revenue }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="status" label="经营状态" width="100px">
+                  <template slot-scope="scope">
+                    <el-tag size="mini" :type="scope.row.status === '正常' ? 'success' : 'warning'">{{ scope.row.status }}</el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
         </div>
 
         <!-- Default Layout for other charts -->
@@ -978,7 +1563,7 @@
 
 <script>
 import Layout from '@/components/Layout/aside.vue'
-import { HeaderLayout, Logo, TimeCounter } from '@/components/Header/index.js'
+import { HeaderLayout, TimeCounter } from '@/components/Header/index.js'
 import FullScreen from '@/components/FullScreen/index.vue'
 import WaterMaker from '@/components/Watermaker/index.vue'
 import ScreenSubtitle from '@/components/ScreenSubtitle/index.vue'
@@ -991,7 +1576,6 @@ export default {
   components: {
     Layout,
     HeaderLayout,
-    Logo,
     TimeCounter,
     FullScreen,
     WaterMaker,
@@ -1001,6 +1585,7 @@ export default {
   data() {
     return {
       activeTab: 0,
+      currentDistributionType: 'project',
       filterCompanies: [],
       filterRegions: [],
       filterYears: ['2026'],
@@ -1034,6 +1619,16 @@ export default {
       dialogSelectedRegion: '',
       dialogSelectedYear: '',
       isHoveringTable: false,
+
+      // Joint Venture Companies Data
+      jvCompanyList: [
+        { jvName: '丽水缙云聚力沥青材料研发有限公司', share: '45.0%', shareNum: 45.0, staffCount: 6, revenue: '8,520.0', status: '正常' },
+        { jvName: '丽水市恒安交通路牌有限公司', share: '35.0%', shareNum: 35.0, staffCount: 4, revenue: '4,910.4', status: '正常' },
+        { jvName: '遂昌路安沥青拌合有限公司', share: '51.0%', shareNum: 51.0, staffCount: 8, revenue: '7,842.0', status: '正常' },
+        { jvName: '景宁交投新材料开发有限公司', share: '40.0%', shareNum: 40.0, staffCount: 3, revenue: '3,200.0', status: '正常' },
+        { jvName: '衢州浙交路桥养护工程有限公司', share: '49.0%', shareNum: 49.0, staffCount: 5, revenue: '2,680.0', status: '正常' },
+        { jvName: '台州三门交投沥青科技有限公司', share: '30.0%', shareNum: 30.0, staffCount: 2, revenue: '1,297.6', status: '筹建' }
+      ],
       receivablesRaw: [
         { region: '杭州区域中心', base: 8000.0, received: 7200.0 },
         { region: '绍兴区域中心', base: 5000.0, received: 4250.0 },
@@ -1124,6 +1719,17 @@ export default {
         { center: '温州区域中心', lastYear: '30,000', target: '38,000', accumulated: '27,000', rate: '71.05', monthly: '3,500' },
         { center: '丽水区域中心', lastYear: '18,000', target: '22,000', accumulated: '15,000', rate: '68.18', monthly: '1,200' }
       ],
+      regionalMarketTableData: [
+        { center: '杭州区域中心', lastYear: '10,000', target: '12,000', accumulated: '11,200', rate: '93.33', monthly: '1,200' },
+        { center: '绍兴区域中心', lastYear: '7,500', target: '8,500', accumulated: '8,100', rate: '95.29', monthly: '850' },
+        { center: '金衢区域中心', lastYear: '6,200', target: '7,500', accumulated: '6,950', rate: '92.67', monthly: '720' },
+        { center: '甬舟区域中心', lastYear: '5,500', target: '6,800', accumulated: '6,120', rate: '90.00', monthly: '680' },
+        { center: '台州区域中心', lastYear: '3,800', target: '4,500', accumulated: '4,180', rate: '92.89', monthly: '450' },
+        { center: '嘉兴区域中心', lastYear: '3,200', target: '4,000', accumulated: '3,580', rate: '89.50', monthly: '380' },
+        { center: '温州区域中心', lastYear: '2,500', target: '3,200', accumulated: '2,850', rate: '89.06', monthly: '310' },
+        { center: '湖州区域中心', lastYear: '1,800', target: '2,000', accumulated: '1,400', rate: '70.00', monthly: '150' },
+        { center: '丽水区域中心', lastYear: '1,200', target: '1,500', accumulated: '900', rate: '60.00', monthly: '90' }
+      ],
       marketQualKPIs: [
         { label: '资质承接累计总额', value: '26,800', unit: '万元' },
         { label: '交工沪杭甬累计', value: '12,400', unit: '万元' },
@@ -1160,38 +1766,105 @@ export default {
         ]
       },
       projectScopeSummary: [
-        { key: 'daily', label: '日常项目', value: '156', ratio: '52.00', sub: '在建: 126个 | 完工: 30个' },
-        { key: 'special', label: '专项项目', value: '84', ratio: '28.00', sub: '在建: 74个 | 完工: 10个' },
-        { key: 'fullLife', label: '全寿命/全域', value: '42', ratio: '14.00', sub: '在建: 38个 | 完工: 4个' },
-        { key: 'unique', label: '特殊项目', value: '18', ratio: '6.00', sub: '在建: 16个 | 完工: 2个' }
+        { key: 'provIn', label: '省内交投内', value: '182', ratio: '60.67', sub: '在建: 156个 | 完工: 26个' },
+        { key: 'provOut', label: '省内交投外', value: '68', ratio: '22.67', sub: '在建: 58个 | 完工: 10个' },
+        { key: 'outProv', label: '省外', value: '38', ratio: '12.67', sub: '在建: 32个 | 完工: 6个' },
+        { key: 'abroad', label: '国外', value: '12', ratio: '4.00', sub: '在建: 8个 | 完工: 4个' }
       ],
       projectScopeDetailData: {
-        daily: [
+        provIn: [
           { place: '杭州绕城日常绿化保养项目', region: '杭州区域中心', dept: '杭州绿化养护项目部', status: '在建' },
           { place: '沪杭甬高速日常路面养护工程', region: '杭州区域中心', dept: '沪杭甬路面保洁项目部', status: '在建' },
           { place: '绍兴诸永高速桥梁日常维护项目', region: '绍兴区域中心', dept: '诸永桥隧日常养护项目部', status: '已完工' },
-          { place: '宁波甬台温路基日常巡查治理', region: '甬舟区域中心', dept: '甬台温日常维保项目部', status: '在建' },
-          { place: '嘉兴钱江通道机电系统日常保养', region: '嘉兴区域中心', dept: '钱江通道机电维护项目部', status: '已完工' }
+          { place: '甬台温路基日常巡查治理', region: '甬舟区域中心', dept: '甬台温日常维保项目部', status: '在建' },
+          { place: '钱江通道机电系统日常保养', region: '嘉兴区域中心', dept: '钱江通道机电维护项目部', status: '已完工' },
+          { place: '诸永高速高边坡专项灾害治理项目', region: '绍兴区域中心', dept: '诸永边坡综合治理项目部', status: '已完工' }
         ],
-        special: [
-          { place: '温州大桥特种健康度加固专项', region: '温州区域中心', dept: '温州特种加固专项项目部', status: '在建' },
-          { place: '杭州湾跨海大桥护栏升级专项', region: '宁波区域中心', dept: '跨海大桥安全提升项目部', status: '在建' },
-          { place: '诸永高速高边坡专项灾害治理项目', region: '绍兴区域中心', dept: '诸永边坡综合治理项目部', status: '已完工' },
-          { place: '申苏浙皖高速路面中修专项工程', region: '湖州区域中心', dept: '申苏浙皖大中修项目部', status: '在建' }
+        provOut: [
+          { place: '台州地方国省道管养一体化示范项目', region: '台州区域中心', dept: '台州一体化项目部', status: '在建' },
+          { place: '丽水市县道生态养护长周期项目', region: '丽水区域中心', dept: '丽水生态保洁项目部', status: '在建' },
+          { place: '温州地方干线公路桥梁定期检测', region: '温州区域中心', dept: '温州检测专项部', status: '已完工' },
+          { place: '衢州地方公路地质灾害应急治理', region: '金衢区域中心', dept: '衢州应急防汛项目部', status: '在建' }
         ],
-        fullLife: [
-          { place: '台州全域养护一体化PPP示范项目', region: '台州区域中心', dept: '台州全域一体化项目部', status: '在建' },
-          { place: '舟山跨海大桥全寿命周期大修工程', region: '甬舟区域中心', dept: '舟山跨海大桥全寿命项目部', status: '在建' },
-          { place: '丽水生态示范公路绿化长周期代维', region: '丽水区域中心', dept: '丽水生态绿化长寿命代管部', status: '在建' }
+        outProv: [
+          { place: '江西昌九高速公路大修养护项目', region: '江西分公司', dept: '昌九大修项目部', status: '在建' },
+          { place: '安徽合宁高速边坡防护加固工程', region: '安徽分公司', dept: '合宁边坡专项项目部', status: '在建' },
+          { place: '福建沈海高速公路路面预防性养护', region: '福建分公司', dept: '沈海微表处项目部', status: '已完工' },
+          { place: '四川成渝高速特大桥梁健康监测', region: '四川分公司', dept: '桥梁监测项目部', status: '在建' }
         ],
-        unique: [
-          { place: '重要保障通道段桥梁特种涂装工程', region: '杭州区域中心', dept: '重大保障涂装专项部', status: '已完工' },
-          { place: '极端气候抢险保通大桥应急修复', region: '温州区域中心', dept: '应急抢险突击第一项目部', status: '在建' }
+        abroad: [
+          { place: '柬埔寨金港高速公路常态化养护', region: '海外事业部', dept: '柬埔寨养护项目部', status: '在建' },
+          { place: '埃塞俄比亚亚的斯亚贝巴高架结构维护', region: '海外事业部', dept: '东非监测养护中心', status: '已完工' },
+          { place: '老挝万万高速路面及桥梁日常巡检', region: '海外事业部', dept: '东南亚养护第一部', status: '在建' }
         ]
-      }
+      },
+
+      // Progress Warning Carousel State
+      activeWarningIndex: 0,
+      warningTimer: null,
+      warningList: [
+        {
+          id: 1,
+          level: 'danger',
+          category: '回款滞后',
+          title: '杭州区域中心项目部应收款回款进度过慢',
+          desc: '截至6月末回款完成率仅为48.2%，低于65%考核预警线，需加快推进确权与催收闭环。',
+          time: '10分钟前',
+          dept: '杭州项目部'
+        },
+        {
+          id: 2,
+          level: 'warning',
+          category: '产值偏低',
+          title: '湖州区域中心养护项目产值完成率过低',
+          desc: '年度计划产值2,000万元，上半年实际完成1,400万元(70.0%)，进度滞后15%。',
+          time: '25分钟前',
+          dept: '湖州项目部'
+        },
+        {
+          id: 3,
+          level: 'danger',
+          category: '计量偏低',
+          title: '丽水区域中心代维项目计量形象比过低',
+          desc: '已完成实物产值900万元，已上报计量仅520万元，形象比57.8%(预警线80%)。',
+          time: '1小时前',
+          dept: '丽水项目部'
+        },
+        {
+          id: 4,
+          level: 'warning',
+          category: '履约风险',
+          title: '申苏浙皖大中修项目防撞护栏材料到货延期',
+          desc: '部分防撞钢护栏供应链到货延迟，影响下阶段交工验收节点履约进度。',
+          time: '2小时前',
+          dept: '申苏浙皖项目部'
+        },
+        {
+          id: 5,
+          level: 'info',
+          category: '资金风险',
+          title: '衢州保洁养护大队账期超6个月未收尾款偏高',
+          desc: '未收款金额达720万元，建议项目部加强款项对接与收尾核销闭环。',
+          time: '3小时前',
+          dept: '衢州项目部'
+        }
+      ]
     }
   },
   computed: {
+    currentWarning() {
+      if (!this.warningList || this.warningList.length === 0) return {}
+      return this.warningList[this.activeWarningIndex % this.warningList.length] || this.warningList[0]
+    },
+    dangerCount() {
+      return (this.warningList || []).filter(w => w.level === 'danger').length
+    },
+    warningCount() {
+      return (this.warningList || []).filter(w => w.level === 'warning').length
+    },
+    infoCount() {
+      return (this.warningList || []).filter(w => w.level === 'info').length
+    },
     sortedOperationTableData() {
       const data = [...this.operationTableData];
       if (this.operationSortType === 'measureRatio') {
@@ -1251,14 +1924,218 @@ export default {
       if (!this.activeDetailItem) return '指标深度下钻'
       return `【下钻分析】${this.activeDetailItem.title}`
     },
+    // Dynamic filtered counts for map/mode indicators
+    filteredCounts() {
+      if (this.filterCompanies.length > 0) {
+        const comp = this.filterCompanies[0]
+        if (comp === '交工沪杭甬') {
+          return {
+            projectTotal: '112', activeOffice: '95', completedOffice: '17', activeRatio: '84.8',
+            provIn: '68', provOut: '28', provOther: '12', abroad: '4',
+            officeTotal: '32', runningOffice: '28', finishOffice: '4', avgStaff: '22',
+            siteTotal: '58', dailySite: '30', specSite: '20', emerSite: '8',
+            alert1: '3', alert2: '12', alert3: '43'
+          }
+        } else if (comp === '顺畅养护') {
+          return {
+            projectTotal: '98', activeOffice: '82', completedOffice: '16', activeRatio: '83.7',
+            provIn: '60', provOut: '22', provOther: '12', abroad: '4',
+            officeTotal: '28', runningOffice: '24', finishOffice: '4', avgStaff: '19',
+            siteTotal: '48', dailySite: '26', specSite: '16', emerSite: '6',
+            alert1: '2', alert2: '11', alert3: '35'
+          }
+        } else {
+          return {
+            projectTotal: '90', activeOffice: '77', completedOffice: '13', activeRatio: '85.5',
+            provIn: '54', provOut: '18', provOther: '14', abroad: '4',
+            officeTotal: '26', runningOffice: '20', finishOffice: '6', avgStaff: '16',
+            siteTotal: '50', dailySite: '26', specSite: '18', emerSite: '6',
+            alert1: '3', alert2: '12', alert3: '35'
+          }
+        }
+      }
+      if (this.filterRegions.length > 0) {
+        return {
+          projectTotal: '38', activeOffice: '32', completedOffice: '6', activeRatio: '84.2',
+          provIn: '38', provOut: '0', provOther: '0', abroad: '0',
+          officeTotal: '12', runningOffice: '10', finishOffice: '2', avgStaff: '20',
+          siteTotal: '22', dailySite: '12', specSite: '8', emerSite: '2',
+          alert1: '1', alert2: '5', alert3: '16'
+        }
+      }
+      return {
+        projectTotal: '300', activeOffice: '254', completedOffice: '46', activeRatio: '84.7',
+        provIn: '182', provOut: '68', provOther: '38', abroad: '12',
+        officeTotal: '86', runningOffice: '72', finishOffice: '14', avgStaff: '18',
+        siteTotal: '156', dailySite: '82', specSite: '54', emerSite: '20',
+        alert1: '8', alert2: '35', alert3: '113'
+      }
+    },
+    // Top indicator dashboard data computed by current map distribution type
+    currentTopData() {
+      if (this.filterCompanies.length > 0) {
+        const comp = this.filterCompanies[0]
+        const companyDataMap = {
+          '交工沪杭甬': {
+            oneProfitFiveRatios: [
+              { label: '利润总额', value: '620.0', unit: '万元', color: 'gold' },
+              { label: '资产负债率', value: '59.10', unit: '%', color: 'cyan' },
+              { label: '净资产收益率', value: '9.40', unit: '%', color: 'green' },
+              { label: '研发投入强度', value: '4.20', unit: '%', color: 'blue' },
+              { label: '全员劳动生产率', value: '54.20', unit: '万元/人', color: 'cyan' },
+              { label: '营业收视率', value: '14.80', unit: '%', color: 'gold' }
+            ],
+            personnel: { total: '520', regular: '340', outsourced: '180', avgAge: '35.8' },
+            equipment: { vehiclesTotal: '168', vehiclesRented: '45', rentedOnSite: '38', yearRentFee: '580.0' }
+          },
+          '顺畅养护': {
+            oneProfitFiveRatios: [
+              { label: '利润总额', value: '480.5', unit: '万元', color: 'gold' },
+              { label: '资产负债率', value: '61.20', unit: '%', color: 'cyan' },
+              { label: '净资产收益率', value: '8.90', unit: '%', color: 'green' },
+              { label: '研发投入强度', value: '3.60', unit: '%', color: 'blue' },
+              { label: '全员劳动生产率', value: '46.80', unit: '万元/人', color: 'cyan' },
+              { label: '营业收视率', value: '11.90', unit: '%', color: 'gold' }
+            ],
+            personnel: { total: '410', regular: '280', outsourced: '130', avgAge: '37.1' },
+            equipment: { vehiclesTotal: '124', vehiclesRented: '32', rentedOnSite: '26', yearRentFee: '410.0' }
+          },
+          '交工养护': {
+            oneProfitFiveRatios: [
+              { label: '利润总额', value: '437.5', unit: '万元', color: 'gold' },
+              { label: '资产负债率', value: '64.50', unit: '%', color: 'cyan' },
+              { label: '净资产收益率', value: '8.20', unit: '%', color: 'green' },
+              { label: '研发投入强度', value: '3.40', unit: '%', color: 'blue' },
+              { label: '全员劳动生产率', value: '43.10', unit: '万元/人', color: 'cyan' },
+              { label: '营业收视率', value: '10.80', unit: '%', color: 'gold' }
+            ],
+            personnel: { total: '350', regular: '230', outsourced: '120', avgAge: '36.9' },
+            equipment: { vehiclesTotal: '134', vehiclesRented: '35', rentedOnSite: '21', yearRentFee: '430.0' }
+          }
+        }
+        if (companyDataMap[comp]) return companyDataMap[comp]
+      } else if (this.filterRegions.length > 0) {
+        return {
+          oneProfitFiveRatios: [
+            { label: '利润总额', value: '310.0', unit: '万元', color: 'gold' },
+            { label: '资产负债率', value: '56.80', unit: '%', color: 'cyan' },
+            { label: '净资产收益率', value: '9.80', unit: '%', color: 'green' },
+            { label: '研发投入强度', value: '4.50', unit: '%', color: 'blue' },
+            { label: '全员劳动生产率', value: '58.00', unit: '万元/人', color: 'cyan' },
+            { label: '营业收视率', value: '15.20', unit: '%', color: 'gold' }
+          ],
+          personnel: { total: '240', regular: '170', outsourced: '70', avgAge: '34.8' },
+          equipment: { vehiclesTotal: '85', vehiclesRented: '22', rentedOnSite: '18', yearRentFee: '290.0' }
+        }
+      }
+
+      const distributionMap = {
+        project: {
+          oneProfitFiveRatios: [
+            { label: '利润总额', value: '1,538.0', unit: '万元', color: 'gold' },
+            { label: '资产负债率', value: '62.40', unit: '%', color: 'cyan' },
+            { label: '净资产收益率', value: '8.70', unit: '%', color: 'green' },
+            { label: '研发投入强度', value: '3.85', unit: '%', color: 'blue' },
+            { label: '全员劳动生产率', value: '48.50', unit: '万元/人', color: 'cyan' },
+            { label: '营业收视率', value: '12.60', unit: '%', color: 'gold' }
+          ],
+          personnel: {
+            total: '1,280',
+            regular: '850',
+            outsourced: '430',
+            avgAge: '36.5'
+          },
+          equipment: {
+            vehiclesTotal: '426',
+            vehiclesRented: '112',
+            rentedOnSite: '85',
+            yearRentFee: '1,420.0'
+          }
+        },
+        office: {
+          oneProfitFiveRatios: [
+            { label: '利润总额', value: '920.5', unit: '万元', color: 'gold' },
+            { label: '资产负债率', value: '58.20', unit: '%', color: 'cyan' },
+            { label: '净资产收益率', value: '9.15', unit: '%', color: 'green' },
+            { label: '研发投入强度', value: '4.10', unit: '%', color: 'blue' },
+            { label: '全员劳动生产率', value: '52.30', unit: '万元/人', color: 'cyan' },
+            { label: '营业收视率', value: '14.20', unit: '%', color: 'gold' }
+          ],
+          personnel: {
+            total: '460',
+            regular: '380',
+            outsourced: '80',
+            avgAge: '38.2'
+          },
+          equipment: {
+            vehiclesTotal: '158',
+            vehiclesRented: '35',
+            rentedOnSite: '32',
+            yearRentFee: '560.0'
+          }
+        },
+        site: {
+          oneProfitFiveRatios: [
+            { label: '利润总额', value: '2,180.0', unit: '万元', color: 'gold' },
+            { label: '资产负债率', value: '65.80', unit: '%', color: 'cyan' },
+            { label: '净资产收益率', value: '8.10', unit: '%', color: 'green' },
+            { label: '研发投入强度', value: '3.20', unit: '%', color: 'blue' },
+            { label: '全员劳动生产率', value: '42.80', unit: '万元/人', color: 'cyan' },
+            { label: '营业收视率', value: '11.50', unit: '%', color: 'gold' }
+          ],
+          personnel: {
+            total: '2,150',
+            regular: '920',
+            outsourced: '1,230',
+            avgAge: '34.1'
+          },
+          equipment: {
+            vehiclesTotal: '680',
+            vehiclesRented: '245',
+            rentedOnSite: '142',
+            yearRentFee: '2,380.0'
+          }
+        }
+      }
+      return distributionMap[this.currentDistributionType] || distributionMap.project
+    },
     // Top executive statistics based on active tab
     topStats() {
       const statsMap = {
         ref_inner: [
-          { label: '在岗施工总人数', value: '1,482', unit: '人', subText: '出勤率 95.8%', icon: 'el-icon-user', trendClass: 'trend-up' },
-          { label: '特种及日常设备', value: '276', unit: '台/套', subText: '运行率 98.2%', icon: 'el-icon-truck', trendClass: 'trend-up' },
-          { label: '生产中场站总数', value: '12', unit: '座', subText: '达产率 100%', icon: 'el-icon-office-building', trendClass: 'trend-neutral' },
-          { label: '安全生产天数', value: '1,248', unit: '天', subText: '无事故记录', icon: 'el-icon-coordinate', trendClass: 'trend-up' }
+          {
+            title: '人员配置',
+            icon: 'el-icon-user',
+            items: [
+              { label: '员工总数', value: '1,482', unit: '人', highlight: true },
+              { label: '正式员工数', value: '620', unit: '人' },
+              { label: '劳务外包员工数', value: '862', unit: '人' }
+            ]
+          },
+          {
+            title: '项目车辆',
+            icon: 'el-icon-truck',
+            items: [
+              { label: '车辆总数', value: '186', unit: '台', highlight: true },
+              { label: '单机成本费用', value: '3.25', unit: '元/公里' }
+            ]
+          },
+          {
+            title: '常租车辆',
+            icon: 'el-icon-guide',
+            items: [
+              { label: '当前在租车辆', value: '45', unit: '台', highlight: true },
+              { label: '本年发生成本费用', value: '280.5', unit: '万元' }
+            ]
+          },
+          {
+            title: '专项租赁设备',
+            icon: 'el-icon-s-operation',
+            items: [
+              { label: '当前外租在场数量', value: '32', unit: '台/套', highlight: true },
+              { label: '本年累计租金', value: '415.8', unit: '万元' }
+            ]
+          }
         ],
         wages_total: [
           { label: '全员预算总额', value: '12,500', unit: '万元', subText: '年内额度', icon: 'el-icon-money', trendClass: 'trend-neutral' },
@@ -1324,11 +2201,13 @@ export default {
       setTimeout(() => {
         this.renderAllSideCharts()
         this.startAutoScroll()
+        this.startWarningTimer()
       }, 500)
     })
   },
   beforeDestroy() {
     this.stopAutoScroll()
+    this.stopWarningTimer()
     this.disposeAllSideCharts()
     if (this.dialogChartInstance) {
       this.dialogChartInstance.dispose()
@@ -1344,6 +2223,30 @@ export default {
     }
   },
   methods: {
+    handleDistributionChange(type) {
+      this.currentDistributionType = type
+    },
+    handleExportReport() {
+      this.$message({
+        type: 'success',
+        message: '基础报表已成功导出下载！',
+        duration: 3000
+      })
+    },
+    startWarningTimer() {
+      this.stopWarningTimer()
+      this.warningTimer = setInterval(() => {
+        if (this.warningList && this.warningList.length > 0) {
+          this.activeWarningIndex = (this.activeWarningIndex + 1) % this.warningList.length
+        }
+      }, 3500)
+    },
+    stopWarningTimer() {
+      if (this.warningTimer) {
+        clearInterval(this.warningTimer)
+        this.warningTimer = null
+      }
+    },
     getRatioColor(ratio) {
       if (ratio >= 0.85) return '#00f3ff'
       if (ratio >= 0.70) return '#67C23A'
@@ -1389,11 +2292,40 @@ export default {
       }
       this.activeTab = idx
     },
+    getShareBadgeClass(shareNum) {
+      if (shareNum >= 50) return 'holding'
+      if (shareNum >= 40) return 'joint'
+      return 'minor'
+    },
+    selectCompanyFilter(company) {
+      if (this.filterCompanies.includes(company)) {
+        this.filterCompanies = []
+      } else {
+        this.filterCompanies = [company]
+        this.filterRegions = []
+      }
+      this.handleFilterChange()
+    },
+    selectRegionFilter(region) {
+      if (this.filterRegions.includes(region)) {
+        this.filterRegions = []
+      } else {
+        this.filterRegions = [region]
+        this.filterCompanies = []
+      }
+      this.handleFilterChange()
+    },
     // Reset Multi-dimensional Filter inputs
     resetFilters() {
       this.filterCompanies = []
       this.filterRegions = []
       this.filterYears = ['2026']
+      this.handleFilterChange()
+    },
+    handleFilterChange() {
+      this.$nextTick(() => {
+        this.renderAllSideCharts()
+      })
     },
     // Drill-down Detail Modal opening
     handleViewDetail(item) {
@@ -1403,11 +2335,7 @@ export default {
       }
       this.activeDetailItem = item
       
-      if (item.chartType === 'project_info') {
-        this.selectedScopeKey = 'daily'
-      } else {
-        this.selectedScopeKey = 'provIn'
-      }
+      this.selectedScopeKey = 'provIn'
 
       // Pull dynamic structured data model for down-drill pop-up
       const dataModel = generateDrillData(item.chartType)
@@ -1421,7 +2349,7 @@ export default {
     handleDialogOpened() {
       if (!this.activeDetailItem) return
       
-      if (this.activeDetailItem.chartType === 'market_expansion') {
+      if (this.activeDetailItem.chartType === 'market_expansion' || this.activeDetailItem.chartType === 'regional_market') {
         this.renderMarketDialogChart()
       } else if (this.activeDetailItem.chartType === 'project_info') {
         this.renderProjectDialogChart()
@@ -1474,6 +2402,20 @@ export default {
             this.dialogChartQualInstance.dispose()
           }
           this.dialogChartQualInstance = echarts.init(qualContainer)
+
+          const isRegionalMarket = this.activeDetailItem && this.activeDetailItem.chartType === 'regional_market'
+          const qualData = isRegionalMarket
+            ? [
+                { value: 21000, name: '交工沪杭甬', itemStyle: { color: '#00f3ff' } },
+                { value: 13800, name: '顺畅养护', itemStyle: { color: '#1b6cff' } },
+                { value: 10480, name: '交工养护', itemStyle: { color: '#edbe75' } }
+              ]
+            : [
+                { value: 12400, name: '交工沪杭甬', itemStyle: { color: '#00f3ff' } },
+                { value: 8200, name: '顺畅养护', itemStyle: { color: '#1b6cff' } },
+                { value: 6200, name: '交工养护', itemStyle: { color: '#edbe75' } }
+              ]
+
           this.dialogChartQualInstance.setOption({
             tooltip: { trigger: 'item', formatter: '{b}: {c} 万元 ({d}%)' },
             legend: {
@@ -1485,7 +2427,7 @@ export default {
               textStyle: { color: 'rgba(255, 255, 255, 0.85)', fontSize: 10 }
             },
             series: [{
-              name: '资质开累金额',
+              name: isRegionalMarket ? '资质完成产值' : '资质开累金额',
               type: 'pie',
               radius: ['45%', '70%'],
               avoidLabelOverlap: true,
@@ -1499,11 +2441,7 @@ export default {
               emphasis: {
                 label: { show: true, fontSize: '11', fontWeight: 'bold' }
               },
-              data: [
-                { value: 12400, name: '交工沪杭甬', itemStyle: { color: '#00f3ff' } },
-                { value: 8200, name: '顺畅养护', itemStyle: { color: '#1b6cff' } },
-                { value: 6200, name: '交工养护', itemStyle: { color: '#edbe75' } }
-              ]
+              data: qualData
             }]
           })
         }
@@ -1662,42 +2600,560 @@ export default {
   }
   
   ::v-deep .topLayout {
-    height: 108px !important; /* Exactly ~1/10 of screen height */
-    top: 110px !important;
+    height: 152px !important;
+    top: 98px !important;
+    left: 535px !important;
+    width: 850px !important;
   }
 }
 
-/* === Header CSS styles === */
+/* === Top Indicator Dashboard (Line 1: 一利五率, Line 2: 人员情况 & 设备情况) === */
+.top-indicator-dashboard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+
+  .gold {
+    color: #edbe75 !important;
+    text-shadow: 0 0 8px rgba(237, 190, 117, 0.4);
+  }
+  .cyan {
+    color: #00f3ff !important;
+    text-shadow: 0 0 8px rgba(0, 243, 255, 0.4);
+  }
+  .green {
+    color: #67C23A !important;
+    text-shadow: 0 0 8px rgba(103, 194, 58, 0.4);
+  }
+  .blue {
+    color: #409EFF !important;
+    text-shadow: 0 0 8px rgba(64, 158, 255, 0.4);
+  }
+  .red {
+    color: #f56c6c !important;
+    text-shadow: 0 0 8px rgba(245, 108, 108, 0.4);
+  }
+
+  .full-width-module {
+    width: 100%;
+  }
+
+  .category-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .category-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .category-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .cat-stat-box {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(12, 38, 80, 0.55);
+    border: 1px solid rgba(0, 243, 255, 0.25);
+    border-radius: 4px;
+    padding: 4px 8px;
+
+    .box-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+
+      &.provIn { background: #00f3ff; box-shadow: 0 0 6px #00f3ff; }
+      &.provOut { background: #edbe75; box-shadow: 0 0 6px #edbe75; }
+      &.provOther { background: #67C23A; box-shadow: 0 0 6px #67C23A; }
+      &.abroad { background: #409EFF; box-shadow: 0 0 6px #409EFF; }
+    }
+
+    .box-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+
+      .box-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.85);
+        white-space: nowrap;
+
+        .label-sub {
+          font-style: normal;
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.6);
+        }
+      }
+
+      .box-val-wrap {
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+
+        .box-val {
+          font-size: 15px;
+          font-weight: bold;
+          font-family: 'YJSZ', 'DIN Alternate', monospace, sans-serif;
+        }
+
+        .box-unit {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        .box-ratio {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.65);
+          margin-left: 2px;
+        }
+      }
+    }
+  }
+
+  .alert-box-1 {
+    border-color: rgba(245, 108, 108, 0.5);
+    background: rgba(245, 108, 108, 0.12);
+  }
+  .alert-box-2 {
+    border-color: rgba(237, 190, 117, 0.5);
+    background: rgba(237, 190, 117, 0.12);
+  }
+  .alert-box-3 {
+    border-color: rgba(0, 243, 255, 0.4);
+    background: rgba(0, 243, 255, 0.08);
+  }
+
+  .indicator-row {
+    box-sizing: border-box;
+  }
+
+  /* Line 1: 一利五率 */
+  .row-one-profit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 52px;
+    background: linear-gradient(180deg, rgba(8, 30, 68, 0.88) 0%, rgba(3, 16, 40, 0.92) 100%);
+    border: 1.5px solid rgba(0, 243, 255, 0.45);
+    border-radius: 6px;
+    padding: 0 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(0, 243, 255, 0.15);
+    backdrop-filter: blur(8px);
+
+    .row-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 76px;
+      height: 40px;
+      background: linear-gradient(135deg, rgba(0, 243, 255, 0.25) 0%, rgba(8, 50, 110, 0.6) 100%);
+      border: 1px solid rgba(0, 243, 255, 0.6);
+      border-radius: 4px;
+      color: #00f3ff;
+      font-weight: bold;
+      font-size: 13px;
+      letter-spacing: 1px;
+      flex-shrink: 0;
+
+      i {
+        font-size: 14px;
+        color: #edbe75;
+        margin-bottom: 2px;
+      }
+    }
+
+    .metrics-grid {
+      display: flex;
+      flex: 1;
+      gap: 6px;
+      height: 40px;
+
+      .metric-card {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(12, 38, 80, 0.65);
+        border: 1px solid rgba(0, 243, 255, 0.25);
+        border-radius: 4px;
+        padding: 2px 4px;
+
+        .metric-label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.82);
+          white-space: nowrap;
+        }
+
+        .metric-val-wrap {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+          margin-top: 1px;
+
+          .metric-val {
+            font-size: 15px;
+            font-weight: bold;
+            font-family: 'YJSZ', 'DIN Alternate', monospace, sans-serif;
+          }
+
+          .metric-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+        }
+      }
+    }
+  }
+
+  /* Line 2: Personnel & Equipment Modules */
+  .row-modules {
+    display: flex;
+    gap: 10px;
+    height: 94px;
+
+    .status-module {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(180deg, rgba(8, 30, 68, 0.88) 0%, rgba(3, 16, 40, 0.92) 100%);
+      border: 1.5px solid rgba(0, 243, 255, 0.4);
+      border-radius: 6px;
+      padding: 6px 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(0, 243, 255, 0.12);
+      backdrop-filter: blur(8px);
+
+      .module-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: bold;
+        color: #00f3ff;
+        border-bottom: 1px solid rgba(0, 243, 255, 0.25);
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+
+        i {
+          font-size: 14px;
+          color: #edbe75;
+        }
+      }
+
+      .module-body {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        flex: 1;
+
+        .module-v-divider {
+          width: 1px;
+          height: 44px;
+          background: rgba(0, 243, 255, 0.25);
+        }
+
+        .stat-group {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+
+          &.single-stat {
+            align-items: center;
+          }
+
+          .group-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.8);
+            white-space: nowrap;
+          }
+
+          .group-val-wrap {
+            display: flex;
+            align-items: baseline;
+            gap: 3px;
+
+            .group-val {
+              font-size: 17px;
+              font-weight: bold;
+              font-family: 'YJSZ', 'DIN Alternate', monospace, sans-serif;
+            }
+
+            .group-unit {
+              font-size: 10px;
+              color: rgba(255, 255, 255, 0.65);
+            }
+          }
+
+          .breakdown-chips {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+
+            .chip {
+              font-size: 10px;
+              color: rgba(255, 255, 255, 0.85);
+              background: rgba(255, 255, 255, 0.08);
+              border: 1px solid rgba(0, 243, 255, 0.2);
+              border-radius: 3px;
+              padding: 1px 5px;
+              white-space: nowrap;
+
+              b {
+                font-weight: bold;
+                font-size: 11px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/* === Header CSS styles (Matching Screenshot Visual Style) === */
 .header-left {
   display: flex;
   align-items: center;
-  height: 50%;
-  padding-left: 30px;
-}
-
-.org-name {
-  color: #00f3ff;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
-  cursor: default;
-}
-
-.right-menu {
-  width: 100%;
+  gap: 20px;
   height: 100%;
-  position: relative;
-  display: inline-block;
+  padding-left: 20px;
 
-  .header-decoration-wrap {
-    height: 50%;
+  .header-brand-tag {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    padding-right: 29px;
+    gap: 6px;
     font-size: 14px;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 1px;
+
+    i {
+      color: #00f3ff;
+      font-size: 16px;
+    }
+  }
+
+  .header-hotline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+
+    i {
+      color: #edbe75;
+      font-size: 15px;
+    }
+  }
+}
+
+.header-center-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding-top: 2px;
+
+  .cockpit-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: 3px;
+    font-weight: 500;
+    margin-bottom: 3px;
+
+    i {
+      color: #00f3ff;
+      font-size: 15px;
+    }
+  }
+
+  .main-title-frame {
+    display: flex;
+    align-items: center;
     position: relative;
+
+    .title-wing {
+      width: 42px;
+      height: 26px;
+      position: relative;
+
+      &.left {
+        background: linear-gradient(90deg, transparent 0%, rgba(0, 243, 255, 0.35) 100%);
+        clip-path: polygon(100% 0, 0 100%, 100% 100%);
+        border-bottom: 2px solid #00f3ff;
+      }
+
+      &.right {
+        background: linear-gradient(270deg, transparent 0%, rgba(0, 243, 255, 0.35) 100%);
+        clip-path: polygon(0 0, 100% 100%, 0 100%);
+        border-bottom: 2px solid #00f3ff;
+      }
+    }
+
+    .title-badge-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 3px 18px;
+      background: linear-gradient(180deg, rgba(8, 55, 130, 0.85) 0%, rgba(3, 20, 55, 0.95) 100%);
+      border: 1.5px solid #00f3ff;
+      border-radius: 4px;
+      box-shadow: 0 0 16px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.25);
+
+      .zj-logo-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 2px 6px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 3px;
+        font-size: 11px;
+        color: #ffffff;
+        font-weight: bold;
+        letter-spacing: 1px;
+
+        i {
+          font-size: 13px;
+          color: #00f3ff;
+        }
+      }
+
+      .title-text-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .main-title-text {
+          font-size: 24px;
+          font-weight: 800;
+          color: #ffffff;
+          letter-spacing: 4px;
+          text-shadow: 0 0 12px #00f3ff, 0 2px 8px rgba(0, 243, 255, 0.6);
+          font-family: '黑体', 'Microsoft YaHei', sans-serif;
+        }
+
+        .swap-icon {
+          font-size: 13px;
+          color: #00f3ff;
+          padding: 2px;
+          border: 1px solid rgba(0, 243, 255, 0.5);
+          border-radius: 3px;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          &:hover {
+            background: rgba(0, 243, 255, 0.2);
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  }
+}
+
+.header-right-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  gap: 6px;
+  padding-right: 20px;
+
+  .top-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .user-dropdown {
+      cursor: pointer;
+
+      .user-dropdown-link {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #00f3ff;
+        }
+      }
+    }
+  }
+
+  .bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .filter-dropdown {
+      cursor: pointer;
+
+      .dropdown-link {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.85);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: color 0.2s;
+
+        &:hover {
+          color: #00f3ff;
+        }
+      }
+    }
+
+    .divider {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 12px;
+    }
+
+    .export-btn {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: color 0.2s;
+
+      i {
+        font-size: 14px;
+        color: #00f3ff;
+      }
+
+      &:hover {
+        color: #00f3ff;
+      }
+    }
   }
 }
 
@@ -1706,35 +3162,103 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 840px;
-  height: 90px;
-  gap: 12px;
-  padding: 0px 8px;
+  width: 100%;
+  height: 80px;
+  gap: 10px;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 .stats-card {
   flex: 1;
   height: 72px;
-  background: rgba(6, 18, 40, 0.6);
-  border: 1.5px solid rgba(41, 94, 151, 0.5);
+  background: rgba(8, 28, 62, 0.55);
+  border: 1px solid rgba(0, 243, 255, 0.35);
   border-radius: 6px;
-  box-shadow: inset 0 0 12px rgba(64, 158, 255, 0.2);
+  box-shadow: inset 0 0 15px rgba(0, 243, 255, 0.12);
   display: flex;
   align-items: center;
   padding: 0 12px;
   gap: 10px;
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 3px;
+  &:hover {
+    border-color: rgba(0, 243, 255, 0.8);
+    box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.25), 0 0 15px rgba(0, 243, 255, 0.3);
+  }
+
+  .multi-stat-card {
+    width: 100%;
     height: 100%;
-    background: #00f3ff;
-    box-shadow: 0 0 8px #00f3ff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    .card-items-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 6px;
+
+      &.count-3 {
+        .sub-stat-item {
+          flex: 1;
+          text-align: center;
+        }
+      }
+
+      &.count-2 {
+        .sub-stat-item {
+          flex: 1;
+          text-align: center;
+        }
+      }
+
+      .sub-stat-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        .sub-label {
+          font-size: 11px;
+          color: rgba(180, 220, 255, 0.85);
+          margin-bottom: 2px;
+          white-space: nowrap;
+        }
+
+        .sub-value-wrap {
+          display: flex;
+          align-items: baseline;
+          justify-content: center;
+          gap: 2px;
+
+          .sub-value {
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'YJSZ', 'DIN Alternate', monospace;
+            color: #00f3ff;
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.7);
+          }
+
+          .sub-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
+            white-space: nowrap;
+          }
+        }
+
+        &.is-highlight {
+          .sub-value {
+            color: #00f3ff;
+            font-size: 20px;
+            text-shadow: 0 0 12px rgba(0, 243, 255, 0.9);
+          }
+        }
+      }
+    }
   }
 
   .stats-icon {
@@ -1840,8 +3364,14 @@ export default {
   backdrop-filter: blur(12px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   
+  &.market-card-item {
+    height: 290px;
+  }
   &.operation-card-item {
     height: 310px;
+  }
+  &.regional-card-item {
+    height: 285px;
   }
   
   .chart-wrapper {
@@ -1849,8 +3379,110 @@ export default {
     height: 200px;
     padding: 10px;
     
+    &.market-chart-wrapper {
+      height: 256px;
+    }
     &.operation-chart-wrapper {
       height: 278px;
+    }
+    &.regional-chart-wrapper {
+      height: 252px;
+    }
+  }
+
+  .regional-market-card {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .annual-op-summary-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 0;
+
+      .op-summary-item {
+        flex: 1;
+        background: rgba(8, 28, 62, 0.6);
+        border: 1px solid rgba(0, 243, 255, 0.35);
+        border-radius: 4px;
+        padding: 5px 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 0 8px rgba(0, 243, 255, 0.1);
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: rgba(0, 243, 255, 0.7);
+          box-shadow: inset 0 0 12px rgba(0, 243, 255, 0.2);
+        }
+
+        .op-summary-label {
+          font-size: 11px;
+          color: rgba(180, 220, 255, 0.85);
+          display: flex;
+          align-items: center;
+          gap: 3px;
+          margin-bottom: 2px;
+          white-space: nowrap;
+
+          i {
+            color: #00f3ff;
+            font-size: 12px;
+          }
+        }
+
+        .op-summary-val-wrap {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+
+          .op-summary-num {
+            font-family: 'YJSZ', 'DIN Alternate', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+
+            &.highlight-cyan {
+              color: #00f3ff;
+              text-shadow: 0 0 10px rgba(0, 243, 255, 0.8);
+            }
+          }
+
+          .op-summary-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+        }
+
+        &.planned {
+          border-color: rgba(27, 108, 255, 0.45);
+          .op-summary-num { color: #8dccf5; }
+        }
+
+        &.actual {
+          border-color: rgba(0, 243, 255, 0.5);
+          .op-summary-num { color: #ffffff; }
+        }
+
+        &.rate {
+          border-color: rgba(237, 190, 117, 0.5);
+          background: rgba(237, 190, 117, 0.08);
+          .op-summary-label i { color: #edbe75; }
+          .op-summary-num { color: #edbe75; text-shadow: 0 0 8px rgba(237, 190, 117, 0.6); }
+        }
+      }
+    }
+
+    .echart-box-sub {
+      width: 100%;
+      flex: 1;
+      min-height: 175px;
     }
   }
   
@@ -1943,10 +3575,10 @@ export default {
               border-radius: 50%;
               display: inline-block;
 
-              &.daily { background: #00f3ff; }
-              &.special { background: #1b6cff; }
-              &.fullLife { background: #edbe75; }
-              &.unique { background: #e6a23c; }
+              &.daily, &.provIn { background: #00f3ff; }
+              &.special, &.provOut { background: #1b6cff; }
+              &.fullLife, &.outProv { background: #edbe75; }
+              &.unique, &.abroad { background: #e6a23c; }
             }
           }
 
@@ -1967,10 +3599,10 @@ export default {
             height: 100%;
             border-radius: 2px;
 
-            &.daily { background: linear-gradient(90deg, rgba(0,243,255,0.3), #00f3ff); }
-            &.special { background: linear-gradient(90deg, rgba(27,108,255,0.3), #1b6cff); }
-            &.fullLife { background: linear-gradient(90deg, rgba(237,190,117,0.3), #edbe75); }
-            &.unique { background: linear-gradient(90deg, rgba(230,162,44,0.3), #e6a23c); }
+            &.daily, &.provIn { background: linear-gradient(90deg, rgba(0,243,255,0.3), #00f3ff); }
+            &.special, &.provOut { background: linear-gradient(90deg, rgba(27,108,255,0.3), #1b6cff); }
+            &.fullLife, &.outProv { background: linear-gradient(90deg, rgba(237,190,117,0.3), #edbe75); }
+            &.unique, &.abroad { background: linear-gradient(90deg, rgba(230,162,44,0.3), #e6a23c); }
           }
         }
       }
@@ -2468,7 +4100,6 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   padding: 4px 6px;
   color: #fff;
 
@@ -2482,7 +4113,7 @@ export default {
       background: linear-gradient(135deg, rgba(6, 30, 70, 0.7) 0%, rgba(10, 40, 90, 0.4) 100%);
       border: 1px solid rgba(0, 243, 255, 0.25);
       border-radius: 4px;
-      padding: 8px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -2524,10 +4155,23 @@ export default {
         }
       }
 
+      &.rate {
+        border-color: rgba(237, 190, 117, 0.35);
+        background: linear-gradient(135deg, rgba(30, 25, 15, 0.6) 0%, rgba(15, 12, 8, 0.3) 100%);
+
+        .highlight-value {
+          color: #edbe75;
+          text-shadow: 0 0 10px rgba(237, 190, 117, 0.5);
+        }
+        .dot {
+          color: #edbe75;
+        }
+      }
+
       .highlight-label {
         font-size: 11px;
         color: rgba(255, 255, 255, 0.65);
-        margin-bottom: 4px;
+        margin-bottom: 2px;
         display: flex;
         align-items: center;
         gap: 4px;
@@ -2545,7 +4189,7 @@ export default {
       }
 
       .highlight-value {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: bold;
         font-family: 'YJSZ', monospace;
       }
@@ -2557,340 +4201,48 @@ export default {
     }
   }
 
-  .market-secondary-row {
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 4px;
-    padding: 6px 12px;
-    margin-bottom: 6px;
-    justify-content: space-between;
-
-    .secondary-item {
-      flex: 1;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 4px;
-
-      .sec-label {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.5);
-      }
-
-      .sec-value {
-        font-size: 12px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.9);
-
-        .sec-unit {
-          font-size: 9px;
-          color: rgba(255, 255, 255, 0.4);
-          font-weight: normal;
-        }
-      }
-    }
-
-    .secondary-divider {
-      width: 1px;
-      height: 12px;
-      background: rgba(255, 255, 255, 0.1);
-      margin: 0 10px;
-    }
-  }
-
-  .market-progress-container {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    .progress-bar-label {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .custom-progress-bg {
-      width: 100%;
-      height: 6px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
-      overflow: hidden;
-    }
-
-    .custom-progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #1b6cff 0%, #00f3ff 100%);
-      border-radius: 3px;
-      position: relative;
-    }
-
-    .progress-glare {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
-      animation: progressMove 2s infinite linear;
-    }
+  .market-chart-sub {
+    flex: 1;
+    width: 100%;
+    min-height: 180px;
   }
 }
 
-/* --- Group Operation Card CSS (New Design) --- */
+/* --- Group Operation Card CSS (New Balanced Design) --- */
 .group-operation-card {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 4px 4px;
+  gap: 8px;
+  padding: 2px;
   color: #fff;
+  box-sizing: border-box;
 
-  /* 顶部主产值卡片 */
-  .op-main-value-card {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: linear-gradient(135deg, rgba(237, 190, 117, 0.18) 0%, rgba(237, 190, 117, 0.05) 100%);
-    border: 1px solid rgba(237, 190, 117, 0.45);
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: inset 0 0 20px rgba(237, 190, 117, 0.08), 0 4px 15px rgba(0, 0, 0, 0.25);
-    transition: all 0.3s ease;
-
-    &:hover {
-      border-color: rgba(237, 190, 117, 0.8);
-      box-shadow: inset 0 0 25px rgba(237, 190, 117, 0.15), 0 0 20px rgba(237, 190, 117, 0.15);
-      transform: translateY(-1px);
-    }
-
-    .op-main-icon {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
-      background: rgba(237, 190, 117, 0.15);
-      border: 1px solid rgba(237, 190, 117, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-
-      i {
-        font-size: 22px;
-        color: #edbe75;
-      }
-    }
-
-    .op-main-content {
-      flex: 1;
-
-      .op-main-label {
-        font-size: 12px;
-        color: rgba(255, 255, 255, 0.7);
-        margin-bottom: 2px;
-      }
-
-      .op-main-value {
-        display: flex;
-        align-items: baseline;
-        gap: 4px;
-
-        .op-main-num {
-          font-size: 28px;
-          font-weight: bold;
-          color: #edbe75;
-          font-family: 'YJSZ', monospace;
-          text-shadow: 0 0 15px rgba(237, 190, 117, 0.4);
-        }
-
-        .op-main-unit {
-          font-size: 12px;
-          color: rgba(237, 190, 117, 0.8);
-        }
-      }
-    }
-
-    .op-main-scan {
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 60%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
-      animation: opScanMove 3s infinite ease-in-out;
-      pointer-events: none;
-    }
-  }
-
-  /* 中部两个子卡片 */
-  .op-sub-row {
-    display: flex;
-    gap: 10px;
-    height: 76px;
-
-    .op-sub-card {
-      flex: 1;
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: rgba(14, 40, 85, 0.45);
-      border: 1px solid rgba(41, 94, 151, 0.5);
-      border-radius: 8px;
-      overflow: hidden;
-      transition: all 0.3s ease;
-
-      &:hover {
-        border-color: rgba(0, 243, 255, 0.6);
-        background: rgba(14, 40, 85, 0.65);
-        transform: translateY(-1px);
-      }
-
-      &.month-value {
-        border-left: 3px solid #00f3ff;
-        .op-sub-icon { background: rgba(0, 243, 255, 0.12); border-color: rgba(0, 243, 255, 0.3); i { color: #00f3ff; } }
-        .op-sub-num { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
-      }
-
-      &.ratio-value {
-        border-left: 3px solid #67C23A;
-        .op-sub-icon { background: rgba(103, 194, 58, 0.12); border-color: rgba(103, 194, 58, 0.3); i { color: #67C23A; } }
-        .op-sub-num { color: #67C23A; text-shadow: 0 0 10px rgba(103, 194, 58, 0.3); }
-      }
-
-      .op-sub-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-
-        i {
-          font-size: 18px;
-        }
-      }
-
-      .op-sub-info {
-        flex: 1;
-        min-width: 0;
-
-        .op-sub-label {
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.6);
-          margin-bottom: 2px;
-        }
-
-        .op-sub-value {
-          display: flex;
-          align-items: baseline;
-          gap: 2px;
-
-          .op-sub-num {
-            font-size: 22px;
-            font-weight: bold;
-            font-family: 'YJSZ', monospace;
-          }
-
-          .op-sub-unit {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.5);
-          }
-        }
-      }
-
-      .op-ratio-ring {
-        width: 44px;
-        height: 44px;
-        flex-shrink: 0;
-
-        .circular-chart {
-          width: 100%;
-          height: 100%;
-          transform: rotate(-90deg);
-
-          .circle-bg {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.08);
-            stroke-width: 3;
-          }
-
-          .circle {
-            fill: none;
-            stroke: #67C23A;
-            stroke-width: 3;
-            stroke-linecap: round;
-            animation: opCircleProgress 1.5s ease-out forwards;
-          }
-        }
-      }
-    }
-  }
-
-  /* 底部计量网格 */
-  .op-measure-grid {
-    flex: 1;
+  /* Top 2x2 Grid for 4 Metrics */
+  .op-metrics-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px;
+    height: 125px;
 
-    .op-measure-cell {
-      position: relative;
+    .op-metric-cell {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 10px;
-      background: rgba(14, 40, 85, 0.35);
-      border: 1px solid rgba(41, 94, 151, 0.35);
+      padding: 6px 10px;
+      background: rgba(14, 40, 85, 0.5);
+      border: 1px solid rgba(41, 94, 151, 0.4);
       border-radius: 6px;
-      overflow: hidden;
-      transition: all 0.25s ease;
-      cursor: pointer;
+      transition: all 0.3s;
 
       &:hover {
-        transform: translateY(-2px) scale(1.02);
-        background: rgba(14, 40, 85, 0.55);
+        border-color: rgba(0, 243, 255, 0.5);
+        background: rgba(14, 40, 85, 0.7);
       }
 
-      &.reported {
-        border-left: 2px solid #00f3ff;
-        &:hover { border-color: rgba(0, 243, 255, 0.6); box-shadow: 0 4px 12px rgba(0, 243, 255, 0.15); }
-        .op-cell-icon { background: rgba(0, 243, 255, 0.1); i { color: #00f3ff; } }
-        .op-cell-value { color: #00f3ff; }
-      }
-
-      &.approved {
-        border-left: 2px solid #edbe75;
-        &:hover { border-color: rgba(237, 190, 117, 0.6); box-shadow: 0 4px 12px rgba(237, 190, 117, 0.15); }
-        .op-cell-icon { background: rgba(237, 190, 117, 0.1); i { color: #edbe75; } }
-        .op-cell-value { color: #edbe75; }
-      }
-
-      &.prepayment {
-        border-left: 2px solid #67C23A;
-        &:hover { border-color: rgba(103, 194, 58, 0.6); box-shadow: 0 4px 12px rgba(103, 194, 58, 0.15); }
-        .op-cell-icon { background: rgba(103, 194, 58, 0.1); i { color: #67C23A; } }
-        .op-cell-value { color: #67C23A; }
-      }
-
-      &.payment {
-        border-left: 2px solid #1b6cff;
-        &:hover { border-color: rgba(27, 108, 255, 0.6); box-shadow: 0 4px 12px rgba(27, 108, 255, 0.15); }
-        .op-cell-icon { background: rgba(27, 108, 255, 0.1); i { color: #1b6cff; } }
-        .op-cell-value { color: #1b6cff; }
-      }
-
-      .op-cell-icon {
+      .metric-icon {
         width: 30px;
         height: 30px;
         border-radius: 6px;
@@ -2900,42 +4252,312 @@ export default {
         flex-shrink: 0;
 
         i {
-          font-size: 14px;
+          font-size: 15px;
         }
       }
 
-      .op-cell-content {
+      &.accum {
+        border-left: 3px solid #edbe75;
+        .metric-icon { background: rgba(237, 190, 117, 0.15); color: #edbe75; }
+        .metric-value { color: #edbe75; }
+      }
+
+      &.reported {
+        border-left: 3px solid #00f3ff;
+        .metric-icon { background: rgba(0, 243, 255, 0.15); color: #00f3ff; }
+        .metric-value { color: #00f3ff; }
+      }
+
+      &.prepayment {
+        border-left: 3px solid #E6A23C;
+        .metric-icon { background: rgba(230, 162, 60, 0.15); color: #E6A23C; }
+        .metric-value { color: #E6A23C; }
+      }
+
+      &.payment {
+        border-left: 3px solid #67C23A;
+        .metric-icon { background: rgba(103, 194, 58, 0.15); color: #67C23A; }
+        .metric-value { color: #67C23A; }
+      }
+
+      .metric-content {
         flex: 1;
         min-width: 0;
 
-        .op-cell-label {
-          font-size: 10px;
-          color: rgba(255, 255, 255, 0.55);
-          margin-bottom: 1px;
+        .metric-label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.7);
+          margin-bottom: 2px;
+          white-space: nowrap;
         }
 
-        .op-cell-value {
+        .metric-value {
+          font-size: 14px;
+          font-weight: bold;
+          font-family: 'YJSZ', monospace;
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+
+          .unit {
+            font-size: 10px;
+            font-weight: normal;
+            color: rgba(255, 255, 255, 0.55);
+            font-family: sans-serif;
+          }
+        }
+      }
+    }
+  }
+
+  /* Bottom Row for 2 Gauge Charts */
+  .op-gauges-row {
+    flex: 1;
+    display: flex;
+    gap: 8px;
+
+    .op-gauge-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6, 18, 40, 0.5);
+      border: 1px solid rgba(41, 94, 151, 0.4);
+      border-radius: 6px;
+      padding: 6px 4px;
+      position: relative;
+
+      .gauge-dial-wrap {
+        position: relative;
+        width: 105px;
+        height: 56px;
+
+        .gauge-svg {
+          width: 100%;
+          height: 100%;
+          overflow: visible;
+        }
+
+        .gauge-center-val {
+          position: absolute;
+          bottom: 2px;
+          left: 50%;
+          transform: translateX(-50%);
           font-size: 15px;
           font-weight: bold;
           font-family: 'YJSZ', monospace;
+          white-space: nowrap;
 
-          span {
-            font-size: 9px;
-            font-weight: normal;
-            color: rgba(255, 255, 255, 0.5);
-            margin-left: 2px;
+          .unit {
+            font-size: 10px;
+            margin-left: 1px;
+            font-family: sans-serif;
+          }
+
+          &.cyan { color: #00f3ff; text-shadow: 0 0 10px rgba(0, 243, 255, 0.4); }
+          &.gold { color: #edbe75; text-shadow: 0 0 10px rgba(237, 190, 117, 0.4); }
+        }
+      }
+
+      .gauge-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: rgba(255, 255, 255, 0.9);
+        margin-top: 2px;
+      }
+
+      .gauge-sub {
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.5);
+        white-space: nowrap;
+        transform: scale(0.9);
+      }
+    }
+  }
+}
+
+/* --- Progress Warning Carousel Panel Styles --- */
+.progress-warning-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px;
+
+  .warning-stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: rgba(255, 77, 79, 0.08);
+    border: 1px solid rgba(255, 77, 79, 0.3);
+    border-radius: 6px;
+
+    .warning-badge-total {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #ff4d4f;
+      font-weight: bold;
+
+      i {
+        font-size: 15px;
+      }
+      b {
+        font-size: 15px;
+        font-family: 'YJSZ', monospace;
+      }
+    }
+
+    .warning-badge-counts {
+      display: flex;
+      gap: 6px;
+
+      .count-tag {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+
+        &.danger {
+          background: rgba(255, 77, 79, 0.2);
+          color: #ff4d4f;
+          border: 1px solid rgba(255, 77, 79, 0.4);
+        }
+        &.warning {
+          background: rgba(230, 162, 60, 0.2);
+          color: #e6a23c;
+          border: 1px solid rgba(230, 162, 60, 0.4);
+        }
+        &.info {
+          background: rgba(0, 243, 255, 0.15);
+          color: #00f3ff;
+          border: 1px solid rgba(0, 243, 255, 0.3);
+        }
+      }
+    }
+  }
+
+  .warning-carousel-body {
+    flex: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(10, 28, 58, 0.6);
+    border: 1px solid rgba(41, 94, 151, 0.45);
+    border-radius: 6px;
+    overflow: hidden;
+
+    .active-warning-box {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .active-warning-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .warning-type-tag {
+          font-size: 11px;
+          font-weight: bold;
+          padding: 2px 8px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          &.danger {
+            background: rgba(255, 77, 79, 0.25);
+            color: #ff4d4f;
+            border: 1px solid rgba(255, 77, 79, 0.5);
+          }
+          &.warning {
+            background: rgba(230, 162, 60, 0.25);
+            color: #e6a23c;
+            border: 1px solid rgba(230, 162, 60, 0.5);
+          }
+          &.info {
+            background: rgba(0, 243, 255, 0.2);
+            color: #00f3ff;
+            border: 1px solid rgba(0, 243, 255, 0.4);
           }
         }
 
-        .op-cell-deduct {
-          font-size: 9px;
-          color: #F56C6C;
-          margin-top: 1px;
+        .warning-dept {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.75);
+        }
+
+        .warning-time {
+          margin-left: auto;
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.45);
+        }
+      }
+
+      .active-warning-title {
+        font-size: 13px;
+        font-weight: bold;
+        color: #ffffff;
+        line-height: 1.4;
+      }
+
+      .active-warning-desc {
+        font-size: 11px;
+        color: rgba(220, 235, 255, 0.8);
+        line-height: 1.5;
+        background: rgba(0, 0, 0, 0.25);
+        padding: 6px 8px;
+        border-radius: 4px;
+        border-left: 2px solid rgba(0, 243, 255, 0.5);
+      }
+    }
+
+    .warning-carousel-controls {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 8px;
+
+      .control-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &.active {
+          width: 20px;
+          border-radius: 4px;
+
+          &.danger { background: #ff4d4f; box-shadow: 0 0 8px rgba(255, 77, 79, 0.8); }
+          &.warning { background: #e6a23c; box-shadow: 0 0 8px rgba(230, 162, 60, 0.8); }
+          &.info { background: #00f3ff; box-shadow: 0 0 8px rgba(0, 243, 255, 0.8); }
         }
       }
     }
   }
 }
+
+.warning-slide-enter-active, .warning-slide-leave-active {
+  transition: all 0.35s ease;
+}
+.warning-slide-enter {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.warning-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
+}
+
+
 
 @keyframes opScanMove {
   0% { left: -60%; }
@@ -3609,6 +5231,189 @@ export default {
     border-color: #00f3ff;
     color: #00f3ff;
     box-shadow: -1px 0 0 0 #00f3ff;
+  }
+}
+
+/* --- Share Badge Styling --- */
+.share-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: monospace;
+
+  &.holding {
+    background: rgba(237, 190, 117, 0.18);
+    border: 1px solid rgba(237, 190, 117, 0.6);
+    color: #edbe75;
+  }
+
+  &.joint {
+    background: rgba(0, 243, 255, 0.15);
+    border: 1px solid rgba(0, 243, 255, 0.5);
+    color: #00f3ff;
+  }
+
+  &.minor {
+    background: rgba(27, 108, 255, 0.15);
+    border: 1px solid rgba(27, 108, 255, 0.5);
+    color: #409EFF;
+  }
+}
+
+/* --- Joint Venture Companies Card Styles --- */
+.jv-companies-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 8px;
+  box-sizing: border-box;
+
+  .jv-summary-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(14, 40, 85, 0.6);
+    border: 1px solid rgba(41, 94, 151, 0.5);
+    border-radius: 6px;
+    padding: 6px 10px;
+
+    .jv-summary-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .jv-sum-label {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.6);
+      }
+
+      .jv-sum-val {
+        font-size: 14px;
+        font-weight: bold;
+        font-family: 'YJSZ', monospace;
+
+        .unit {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.6);
+          font-family: sans-serif;
+        }
+
+        &.cyan { color: #00f3ff; }
+        &.blue { color: #409EFF; }
+        &.gold { color: #edbe75; }
+      }
+    }
+
+    .jv-sum-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(41, 94, 151, 0.4);
+    }
+  }
+
+  .jv-list-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: rgba(6, 18, 40, 0.5);
+    border: 1px solid rgba(41, 94, 151, 0.4);
+    border-radius: 6px;
+    overflow: hidden;
+
+    .jv-list-header {
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(14, 40, 85, 0.7);
+      border-bottom: 1px solid rgba(41, 94, 151, 0.4);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+      font-weight: bold;
+
+      .col-name { flex: 1.2; }
+      .col-share { width: 68px; text-align: center; }
+      .col-staff { width: 62px; text-align: center; }
+      .col-revenue { width: 72px; text-align: right; }
+    }
+
+    .jv-list-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+
+      .jv-row-item {
+        display: flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-bottom: 1px solid rgba(41, 94, 151, 0.2);
+        font-size: 11px;
+        transition: background 0.2s;
+
+        &:hover {
+          background: rgba(0, 243, 255, 0.08);
+        }
+
+        .col-name {
+          flex: 1.2;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          overflow: hidden;
+
+          .dot {
+            width: 4px;
+            height: 4px;
+            background: #00f3ff;
+            border-radius: 50%;
+            flex-shrink: 0;
+          }
+
+          .name-text {
+            color: rgba(255, 255, 255, 0.9);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+
+        .col-share {
+          width: 68px;
+          text-align: center;
+        }
+
+        .col-staff {
+          width: 62px;
+          text-align: center;
+          color: rgba(255, 255, 255, 0.85);
+
+          i {
+            color: #00f3ff;
+            margin-right: 2px;
+          }
+        }
+
+        .col-revenue {
+          width: 72px;
+          text-align: right;
+
+          .rev-num {
+            color: #edbe75;
+            font-weight: bold;
+            font-family: 'YJSZ', monospace;
+          }
+
+          .rev-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-left: 2px;
+          }
+        }
+      }
+    }
   }
 }
 </style>

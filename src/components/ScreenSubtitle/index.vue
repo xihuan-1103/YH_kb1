@@ -1,5 +1,6 @@
 <template>
   <div class="subheader">
+    <div class="header-accent-tag"></div>
     <slot name="title">
       <div class="title">
         <h3>{{ name }}</h3>
@@ -37,19 +38,42 @@ export default {
   justify-content: flex-start;
   align-items: center;
   width: 100%;
-  height: 40px;
-  background: linear-gradient(90deg, rgba(40, 87, 144, 0.76) 8.94%, rgba(66, 107, 165, 0.01) 94.28%);
+  height: 38px;
+  background: linear-gradient(90deg, rgba(16, 52, 98, 0.85) 0%, rgba(12, 34, 68, 0.45) 80%, rgba(8, 22, 45, 0.1) 100%);
+  border-left: 4px solid #00f3ff;
+  border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+  box-shadow: inset 0 0 10px rgba(0, 243, 255, 0.12);
+  padding-left: 10px;
+  margin-bottom: 8px;
+  position: relative;
+  border-radius: 2px 6px 6px 2px;
+}
+
+.header-accent-tag {
+  width: 5px;
+  height: 14px;
+  background: #00f3ff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px #00f3ff;
+  margin-right: 8px;
+  flex-shrink: 0;
 }
 
 .title {
   display: flex;
-  color: #8dccf5;
-  padding-left: 20px;
+  align-items: center;
+  color: #ffffff;
   font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 0.8px;
+
   > h3 {
     display: flex;
     margin: 0;
-    color: #fff;
+    color: #ffffff;
+    font-size: 15px;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 243, 255, 0.6);
   }
 }
 
@@ -65,6 +89,6 @@ export default {
 
 .expiration-date {
   padding-left: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(0, 243, 255, 0.85);
 }
 </style>
