@@ -1,13 +1,14 @@
 <template>
-  <div class="top" :style="{ backgroundImage: 'url(' + bgTop + ')' }">
+  <div class="top">
+    <div class="header-base-bar"></div>
     <el-row type="flex" align="middle" justify="space-between">
-      <el-col :span="7" class="left">
+      <el-col :span="6" class="left">
         <slot name="left" />
       </el-col>
-      <el-col :span="10" class="middle">
+      <el-col :span="12" class="middle">
         <slot name="middle" />
       </el-col>
-      <el-col :span="7" class="right">
+      <el-col :span="6" class="right">
         <slot name="right" />
       </el-col>
     </el-row>
@@ -15,30 +16,32 @@
 </template>
 
 <script>
-import bgTop from '@/assets/bg_top.png'
-
 export default {
-  name: 'HeaderLayout',
-  data() {
-    return {
-      bgTop
-    }
-  }
+  name: 'HeaderLayout'
 }
 </script>
 
 <style lang="scss" scoped>
 .top {
-  padding: 0 16px;
-  height: 95px;
+  padding: 0;
+  height: 92px;
   width: 1920px;
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center top;
   position: relative;
   box-sizing: border-box;
-  background-color: rgba(6, 20, 48, 0.85);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6), inset 0 -1px 0 rgba(0, 243, 255, 0.3);
+  background: transparent;
+  overflow: visible;
+}
+
+.header-base-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: linear-gradient(180deg, rgba(24, 75, 155, 0.85) 0%, rgba(14, 52, 115, 0.85) 100%);
+  border-bottom: 1px solid rgba(100, 185, 255, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 40, 100, 0.35);
+  z-index: 1;
 }
 
 .left,
@@ -46,18 +49,22 @@ export default {
 .right {
   height: 100%;
   display: flex;
-  align-items: center;
+  position: relative;
+  z-index: 2;
 }
 
 .left {
+  align-items: flex-start;
   justify-content: flex-start;
 }
 
 .middle {
+  align-items: flex-start;
   justify-content: center;
 }
 
 .right {
+  align-items: flex-start;
   justify-content: flex-end;
 }
 

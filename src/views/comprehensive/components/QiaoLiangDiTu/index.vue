@@ -634,8 +634,8 @@ export default {
 /* === Map Controls Panel (Floating Pill Buttons matching 国际/国内/省内) === */
 .map-controls-panel.pill-style-panel {
   position: absolute;
-  top: 262px;
-  right: 540px;
+  top: 300px;
+  right: 560px;
   z-index: 150;
   background: transparent;
   border: none;

@@ -6,81 +6,34 @@
         <HeaderLayout>
           <template #left>
             <div class="header-left">
-              <div class="header-brand-tag">
-                <i class="el-icon-s-cooperation"></i>
-                <span>浙江交工研制</span>
-              </div>
-              <div class="header-hotline">
-                <i class="el-icon-phone-outline"></i>
-                <span>数字化服务热线</span>
+              <div class="header-brand">
+                <img src="@/assets/logo-zhejiangjiaogong.png" class="brand-logo" alt="logo" />
+                <span class="brand-name">浙江交工</span>
               </div>
             </div>
           </template>
 
           <template #middle>
             <div class="header-center-title">
-              <div class="cockpit-subtitle">
-                <i class="el-icon-platform"></i>
-                <span>浙江交工 · 驾驶舱</span>
-              </div>
-              <div class="main-title-frame">
-                <div class="title-wing left"></div>
-                <div class="title-badge-box">
-                  <div class="zj-logo-badge">
-                    <i class="el-icon-office-building"></i>
-                    <span>浙江交工</span>
-                  </div>
-                  <div class="title-text-wrap">
-                    <span class="main-title-text">{{ currentTabName || '综合经营看板' }}</span>
-                    <i class="el-icon-sort swap-icon" title="切换视图"></i>
+              <div class="header-title-panel">
+                <div class="title-panel-inner">
+                  <div class="title-main-text">
+                    交科养护 · 经营内参
                   </div>
                 </div>
-                <div class="title-wing right"></div>
               </div>
             </div>
           </template>
 
           <template #right>
-            <div class="header-right-panel">
-              <div class="top-row">
-                <TimeCounter />
-                <el-dropdown trigger="click" class="user-dropdown">
-                  <span class="user-dropdown-link">
-                    周钦扬 <i class="el-icon-arrow-down"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
-                    <el-dropdown-item icon="el-icon-user">个人账号</el-dropdown-item>
-                    <el-dropdown-item icon="el-icon-setting">系统偏好</el-dropdown-item>
-                    <el-dropdown-item icon="el-icon-switch-button" divided>安全退出</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-                <FullScreen />
+            <div class="header-right">
+              <TimeCounter class="header-time" />
+              <div class="header-user">
+                <i class="el-icon-user-solid"></i>
+                <span>周末</span>
               </div>
-              <div class="bottom-row">
-                <el-dropdown trigger="click" class="filter-dropdown">
-                  <span class="dropdown-link">
-                    交工集团 <i class="el-icon-arrow-down"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
-                    <el-dropdown-item>交科养护集团</el-dropdown-item>
-                    <el-dropdown-item>浙江交工集团</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-                <span class="divider">|</span>
-                <el-dropdown trigger="click" class="filter-dropdown">
-                  <span class="dropdown-link">
-                    数据统计 <i class="el-icon-arrow-down"></i>
-                  </span>
-                  <el-dropdown-menu slot="dropdown" class="header-custom-dropdown-menu">
-                    <el-dropdown-item>经营月报</el-dropdown-item>
-                    <el-dropdown-item>产值季报</el-dropdown-item>
-                  </el-dropdown-menu>
-                </el-dropdown>
-                <span class="divider">|</span>
-                <div class="export-btn" @click="handleExportReport">
-                  <span>导出基础报表</span>
-                  <i class="el-icon-document-copy"></i>
-                </div>
+              <div class="header-fullscreen">
+                <FullScreen />
               </div>
             </div>
           </template>
@@ -102,88 +55,99 @@
       <template #top>
         <div class="top-indicator-dashboard">
 
-          <!-- MODE 0: Default (No category selected) -> 一利五率 & 人员, 设备 -->
+          <!-- MODE 0: Default -> 一利五率 & 人员/设备情况 -->
           <template v-if="!currentDistributionType">
-            <!-- Line 1: 一利五率 (6 metrics) -->
-            <div class="indicator-row row-one-profit">
-              <div class="row-badge">
-                <i class="el-icon-trophy"></i>
-                <span>一利五率</span>
-              </div>
-              <div class="metrics-grid">
-                <div 
-                  class="metric-card" 
-                  v-for="(item, idx) in currentTopData.oneProfitFiveRatios" 
-                  :key="'r1-' + idx"
-                >
-                  <div class="metric-label">{{ item.label }}</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val" :class="item.color">{{ item.value }}</span>
-                    <span class="metric-unit">{{ item.unit }}</span>
+            <!-- Line 1: 一利五率 -->
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat profit-main">
+                <div class="main-stat-icon"><i class="el-icon-trophy"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">一利五率</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num gold">15.2</span>
+                    <span class="main-stat-unit">%</span>
                   </div>
+                </div>
+              </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">利润总额</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">28.5</span><span class="sub-unit">亿</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">资产负债率</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">68.5</span><span class="sub-unit">%</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">净资产收益率</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">12.3</span><span class="sub-unit">%</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">研发投入强度</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">3.8</span><span class="sub-unit">%</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">劳动生产率</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">486</span><span class="sub-unit">万/人</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">营业收现率</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">92.6</span><span class="sub-unit">%</span></div>
                 </div>
               </div>
             </div>
 
-            <!-- Line 2: 人员情况 (Left) & 设备情况 (Right) -->
-            <div class="indicator-row row-modules">
-              <!-- Left Module: Personnel -->
-              <div class="status-module personnel-module">
-                <div class="module-title">
-                  <i class="el-icon-user-solid"></i>
-                  <span>人员情况</span>
-                </div>
-                <div class="module-body">
-                  <div class="stat-group">
-                    <span class="group-label">员工总数</span>
-                    <div class="group-val-wrap">
-                      <span class="group-val cyan">{{ currentTopData.personnel.total }}</span>
-                      <span class="group-unit">人</span>
-                    </div>
-                    <div class="breakdown-chips">
-                      <span class="chip">正式 <b class="gold">{{ currentTopData.personnel.regular }}</b> 人</span>
-                      <span class="chip">外包 <b class="blue">{{ currentTopData.personnel.outsourced }}</b> 人</span>
-                    </div>
-                  </div>
-                  <div class="module-v-divider"></div>
-                  <div class="stat-group single-stat">
-                    <span class="group-label">人均年龄</span>
-                    <div class="group-val-wrap">
-                      <span class="group-val gold">{{ currentTopData.personnel.avgAge }}</span>
-                      <span class="group-unit">岁</span>
-                    </div>
+            <!-- Line 2: 人员情况 + 设备情况 -->
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat personnel-main">
+                <div class="main-stat-icon"><i class="el-icon-user-solid"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">人员情况</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num cyan">{{ currentTopData.personnel.total }}</span>
+                    <span class="main-stat-unit">人</span>
                   </div>
                 </div>
               </div>
-
-              <!-- Right Module: Equipment -->
-              <div class="status-module equipment-module">
-                <div class="module-title">
-                  <i class="el-icon-truck"></i>
-                  <span>设备情况</span>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">正式员工</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ currentTopData.personnel.regular }}</span><span class="sub-unit">人</span></div>
                 </div>
-                <div class="module-body">
-                  <div class="stat-group">
-                    <span class="group-label">当前车辆总数</span>
-                    <div class="group-val-wrap">
-                      <span class="group-val cyan">{{ currentTopData.equipment.vehiclesTotal }}</span>
-                      <span class="group-unit">辆</span>
-                    </div>
-                    <div class="breakdown-chips">
-                      <span class="chip">在租车辆 <b class="gold">{{ currentTopData.equipment.vehiclesRented }}</b> 辆</span>
-                    </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">劳务外包</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ currentTopData.personnel.outsourced }}</span><span class="sub-unit">人</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">人均年龄</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ currentTopData.personnel.avgAge }}</span><span class="sub-unit">岁</span></div>
+                </div>
+              </div>
+
+              <div class="row-separator"></div>
+
+              <div class="row-main-stat equipment-main">
+                <div class="main-stat-icon"><i class="el-icon-truck"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">设备情况</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num green">{{ currentTopData.equipment.vehiclesTotal }}</span>
+                    <span class="main-stat-unit">辆</span>
                   </div>
-                  <div class="module-v-divider"></div>
-                  <div class="stat-group">
-                    <span class="group-label">设备站外租在场</span>
-                    <div class="group-val-wrap">
-                      <span class="group-val green">{{ currentTopData.equipment.rentedOnSite }}</span>
-                      <span class="group-unit">台/套</span>
-                    </div>
-                    <div class="breakdown-chips">
-                      <span class="chip">本年累计租金 <b class="gold">{{ currentTopData.equipment.yearRentFee }}</b> 万元</span>
-                    </div>
-                  </div>
+                </div>
+              </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">在租车辆</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ currentTopData.equipment.vehiclesRented }}</span><span class="sub-unit">辆</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">站外租在场</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ currentTopData.equipment.rentedOnSite }}</span><span class="sub-unit">台/套</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">本年累计租金</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ currentTopData.equipment.yearRentFee }}</span><span class="sub-unit">万元</span></div>
                 </div>
               </div>
             </div>
@@ -192,87 +156,61 @@
           <!-- MODE 1: 'project' (项目分布) -> 项目总数, 在建/完工项目部, 按管养区域统计 -->
           <template v-else-if="currentDistributionType === 'project'">
             <!-- Line 1: 项目与项目部汇总 -->
-            <div class="indicator-row row-one-profit">
-              <div class="row-badge">
-                <i class="el-icon-folder-opened"></i>
-                <span>项目分布</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat project-main">
+                <div class="main-stat-icon"><i class="el-icon-folder-opened"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">项目分布</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num gold">{{ filteredCounts.projectTotal }}</span>
+                    <span class="main-stat-unit">个</span>
+                  </div>
+                </div>
               </div>
-              <div class="metrics-grid">
-                <div class="metric-card">
-                  <div class="metric-label">项目总数</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val gold">{{ filteredCounts.projectTotal }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">在建项目部</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ filteredCounts.activeOffice }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">在建项目部</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val cyan">{{ filteredCounts.activeOffice }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">完工项目部</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ filteredCounts.completedOffice }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">完工项目部</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val green">{{ filteredCounts.completedOffice }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
-                </div>
-                <div class="metric-card">
-                  <div class="metric-label">在建占比</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val blue">{{ filteredCounts.activeRatio }}</span>
-                    <span class="metric-unit">%</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">在建占比</span>
+                  <div class="sub-stat-value"><span class="sub-num blue">{{ filteredCounts.activeRatio }}</span><span class="sub-unit">%</span></div>
                 </div>
               </div>
             </div>
 
             <!-- Line 2: 按管养区域统计 -->
-            <div class="indicator-row row-modules">
-              <div class="status-module full-width-module">
-                <div class="module-title">
-                  <i class="el-icon-map-location"></i>
-                  <span>管养区域分布统计</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat area-main">
+                <div class="main-stat-icon"><i class="el-icon-map-location"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">管养区域分布</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num cyan">{{ filteredCounts.provIn + filteredCounts.provOut + filteredCounts.provOther + filteredCounts.abroad }}</span>
+                    <span class="main-stat-unit">个</span>
+                  </div>
                 </div>
-                <div class="module-body category-grid-4">
-                  <div class="cat-stat-box">
-                    <span class="box-dot provIn"></span>
-                    <div class="box-info">
-                      <span class="box-label">省内交投内</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val cyan">{{ filteredCounts.provIn }}</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <span class="box-dot provOut"></span>
-                    <div class="box-info">
-                      <span class="box-label">省内交投外</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val gold">{{ filteredCounts.provOut }}</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <span class="box-dot provOther"></span>
-                    <div class="box-info">
-                      <span class="box-label">省外区域</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val green">{{ filteredCounts.provOther }}</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <span class="box-dot abroad"></span>
-                    <div class="box-info">
-                      <span class="box-label">国外/跨境</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val blue">{{ filteredCounts.abroad }}</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">省内交投内</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ filteredCounts.provIn }}</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">省内交投外</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">{{ filteredCounts.provOut }}</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">省外区域</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ filteredCounts.provOther }}</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">国外/跨境</span>
+                  <div class="sub-stat-value"><span class="sub-num blue">{{ filteredCounts.abroad }}</span><span class="sub-unit">个</span></div>
                 </div>
               </div>
             </div>
@@ -281,91 +219,65 @@
           <!-- MODE 2: 'office' (项目部所在分布) -> 项目部数量及相关指标 -->
           <template v-else-if="currentDistributionType === 'office'">
             <!-- Line 1: 项目部概况 -->
-            <div class="indicator-row row-one-profit">
-              <div class="row-badge">
-                <i class="el-icon-office-building"></i>
-                <span>项目部</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat office-main">
+                <div class="main-stat-icon"><i class="el-icon-office-building"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">项目部</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num gold">{{ filteredCounts.officeTotal }}</span>
+                    <span class="main-stat-unit">个</span>
+                  </div>
+                </div>
               </div>
-              <div class="metrics-grid">
-                <div class="metric-card">
-                  <div class="metric-label">当前项目部总数</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val gold">{{ filteredCounts.officeTotal }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">在建运行</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ filteredCounts.runningOffice }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">在建运行项目部</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val cyan">{{ filteredCounts.runningOffice }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">完工/收尾</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ filteredCounts.finishOffice }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">完工/收尾项目部</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val green">{{ filteredCounts.finishOffice }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
-                </div>
-                <div class="metric-card">
-                  <div class="metric-label">平均配备人员</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val blue">{{ filteredCounts.avgStaff }}</span>
-                    <span class="metric-unit">人/部</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">平均配备人员</span>
+                  <div class="sub-stat-value"><span class="sub-num blue">{{ filteredCounts.avgStaff }}</span><span class="sub-unit">人/部</span></div>
                 </div>
               </div>
             </div>
 
             <!-- Line 2: 区域中心分布 -->
-            <div class="indicator-row row-modules">
-              <div class="status-module full-width-module">
-                <div class="module-title">
-                  <i class="el-icon-s-home"></i>
-                  <span>项目部区域中心分布</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat area-main">
+                <div class="main-stat-icon"><i class="el-icon-s-home"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">区域中心分布</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num cyan">86</span>
+                    <span class="main-stat-unit">个</span>
+                  </div>
                 </div>
-                <div class="module-body category-grid-5">
-                  <div class="cat-stat-box">
-                    <div class="box-info">
-                      <span class="box-label">浙东区域中心</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val cyan">24</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <div class="box-info">
-                      <span class="box-label">浙西区域中心</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val gold">22</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <div class="box-info">
-                      <span class="box-label">浙南区域中心</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val green">18</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <div class="box-info">
-                      <span class="box-label">浙北区域中心</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val blue">14</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box">
-                    <div class="box-info">
-                      <span class="box-label">省外及跨境</span>
-                      <div class="box-val-wrap">
-                        <span class="box-val cyan">8</span><span class="box-unit">个</span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">浙东区域中心</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">24</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">浙西区域中心</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">22</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">浙南区域中心</span>
+                  <div class="sub-stat-value"><span class="sub-num green">18</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">浙北区域中心</span>
+                  <div class="sub-stat-value"><span class="sub-num blue">14</span><span class="sub-unit">个</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">省外及跨境</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">8</span><span class="sub-unit">个</span></div>
                 </div>
               </div>
             </div>
@@ -374,75 +286,60 @@
           <!-- MODE 3: 'site' (施工点位分布) -> 正在施工数量, 施工类型(日常/专项/其他), 封道情况(一类、二类、三类) -->
           <template v-else-if="currentDistributionType === 'site'">
             <!-- Line 1: 正在施工总数与类型 -->
-            <div class="indicator-row row-one-profit">
-              <div class="row-badge">
-                <i class="el-icon-guide"></i>
-                <span>施工点位</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat site-main">
+                <div class="main-stat-icon"><i class="el-icon-guide"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">施工点位</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num cyan">{{ filteredCounts.siteTotal }}</span>
+                    <span class="main-stat-unit">个</span>
+                  </div>
+                </div>
               </div>
-              <div class="metrics-grid">
-                <div class="metric-card highlight-card">
-                  <div class="metric-label">正在施工总数</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val cyan">{{ filteredCounts.siteTotal }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">日常养护点位</span>
+                  <div class="sub-stat-value"><span class="sub-num green">{{ filteredCounts.dailySite }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">日常养护点位</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val green">{{ filteredCounts.dailySite }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">专项工程点位</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">{{ filteredCounts.specSite }}</span><span class="sub-unit">个</span></div>
                 </div>
-                <div class="metric-card">
-                  <div class="metric-label">专项工程点位</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val gold">{{ filteredCounts.specSite }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
-                </div>
-                <div class="metric-card">
-                  <div class="metric-label">其他应急点位</div>
-                  <div class="metric-val-wrap">
-                    <span class="metric-val blue">{{ filteredCounts.emerSite }}</span>
-                    <span class="metric-unit">个</span>
-                  </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">其他应急点位</span>
+                  <div class="sub-stat-value"><span class="sub-num blue">{{ filteredCounts.emerSite }}</span><span class="sub-unit">个</span></div>
                 </div>
               </div>
             </div>
 
             <!-- Line 2: 封道情况统计 (一类、二类、三类) -->
-            <div class="indicator-row row-modules">
-              <div class="status-module full-width-module">
-                <div class="module-title">
-                  <i class="el-icon-warning-outline"></i>
-                  <span>施工封道情况统计</span>
+            <div class="indicator-row ref-row">
+              <div class="row-main-stat alert-main">
+                <div class="main-stat-icon"><i class="el-icon-warning-outline"></i></div>
+                <div class="main-stat-info">
+                  <div class="main-stat-label">施工封道情况</div>
+                  <div class="main-stat-value">
+                    <span class="main-stat-num red">{{ filteredCounts.alert1 + filteredCounts.alert2 + filteredCounts.alert3 }}</span>
+                    <span class="main-stat-unit">处</span>
+                  </div>
                 </div>
-                <div class="module-body category-grid-3">
-                  <div class="cat-stat-box alert-box-1">
-                    <div class="box-info">
-                      <span class="box-label">一类封道 <i class="label-sub">(主线全封闭)</i></span>
-                      <div class="box-val-wrap">
-                        <span class="box-val red">{{ filteredCounts.alert1 }}</span><span class="box-unit">处</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box alert-box-2">
-                    <div class="box-info">
-                      <span class="box-label">二类封道 <i class="label-sub">(借道/车道封)</i></span>
-                      <div class="box-val-wrap">
-                        <span class="box-val gold">{{ filteredCounts.alert2 }}</span><span class="box-unit">处</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="cat-stat-box alert-box-3">
-                    <div class="box-info">
-                      <span class="box-label">三类封道 <i class="label-sub">(移动/肩道施工)</i></span>
-                      <div class="box-val-wrap">
-                        <span class="box-val cyan">{{ filteredCounts.alert3 }}</span><span class="box-unit">处</span>
-                      </div>
-                    </div>
-                  </div>
+              </div>
+              <div class="row-sub-stats">
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">一类封道</span>
+                  <span class="sub-stat-sub">主线全封闭</span>
+                  <div class="sub-stat-value"><span class="sub-num red">{{ filteredCounts.alert1 }}</span><span class="sub-unit">处</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">二类封道</span>
+                  <span class="sub-stat-sub">借道/车道封</span>
+                  <div class="sub-stat-value"><span class="sub-num gold">{{ filteredCounts.alert2 }}</span><span class="sub-unit">处</span></div>
+                </div>
+                <div class="sub-stat-item">
+                  <span class="sub-stat-label">三类封道</span>
+                  <span class="sub-stat-sub">移动/肩道施工</span>
+                  <div class="sub-stat-value"><span class="sub-num cyan">{{ filteredCounts.alert3 }}</span><span class="sub-unit">处</span></div>
                 </div>
               </div>
             </div>
@@ -459,7 +356,9 @@
             :class="{ 
               'market-card-item': item.chartType === 'market_expansion',
               'operation-card-item': item.chartType === 'group_operation', 
-              'regional-card-item': item.chartType === 'regional_market' 
+              'regional-card-item': item.chartType === 'regional_market',
+              'warning-card-item': item.chartType === 'output_conversion',
+              'jv-card-item': item.chartType === 'jv_companies'
             }"
             v-for="(item, idx) in currentTabConfig.left" 
             :key="'l-' + idx"
@@ -480,7 +379,9 @@
             <div class="chart-wrapper" :class="{ 
               'market-chart-wrapper': item.chartType === 'market_expansion',
               'operation-chart-wrapper': item.chartType === 'group_operation', 
-              'regional-chart-wrapper': item.chartType === 'regional_market' 
+              'regional-chart-wrapper': item.chartType === 'regional_market',
+              'warning-chart-wrapper': item.chartType === 'output_conversion',
+              'jv-chart-wrapper': item.chartType === 'jv_companies'
             }">
               <div v-if="item.chartType === 'market_expansion'" class="market-expansion-card">
                 <!-- Highlight Row for Year Accumulated & Year Target & Target Rate -->
@@ -625,6 +526,114 @@
                 <!-- EChart Container -->
                 <div :ref="'leftChart' + idx" class="echart-box-sub"></div>
               </div>
+
+              <!-- Case: Progress Warning Carousel Card -->
+              <div v-else-if="item.chartType === 'output_conversion'" class="progress-warning-card">
+                <!-- Top Warning Header Stats -->
+                <div class="warning-stats-header">
+                  <div class="warning-badge-total">
+                    <i class="el-icon-warning-outline"></i>
+                    <span>实时预警 <b>{{ warningList.length }}</b> 项</span>
+                  </div>
+                  <div class="warning-badge-counts">
+                    <span class="count-tag danger">严重 {{ dangerCount }}</span>
+                    <span class="count-tag warning">警告 {{ warningCount }}</span>
+                    <span class="count-tag info">提示 {{ infoCount }}</span>
+                  </div>
+                </div>
+
+                <!-- Featured Active Warning Carousel Body -->
+                <div 
+                  class="warning-carousel-body"
+                  @mouseenter="stopWarningTimer"
+                  @mouseleave="startWarningTimer"
+                >
+                  <transition name="warning-slide" mode="out-in">
+                    <div 
+                      :key="currentWarning.id" 
+                      class="active-warning-box"
+                      :class="currentWarning.level"
+                    >
+                      <div class="active-warning-top">
+                        <span class="warning-type-tag" :class="currentWarning.level">
+                          <i :class="currentWarning.level === 'danger' ? 'el-icon-error' : currentWarning.level === 'warning' ? 'el-icon-warning' : 'el-icon-info'"></i>
+                          {{ currentWarning.category }}
+                        </span>
+                        <span class="warning-dept"><i class="el-icon-office-building"></i> {{ currentWarning.dept }}</span>
+                        <span class="warning-time">{{ currentWarning.time }}</span>
+                      </div>
+                      <div class="active-warning-title">{{ currentWarning.title }}</div>
+                      <div class="active-warning-desc">{{ currentWarning.desc }}</div>
+                    </div>
+                  </transition>
+
+                  <!-- Carousel Control Dots -->
+                  <div class="warning-carousel-controls">
+                    <div 
+                      v-for="(wItem, wIdx) in warningList" 
+                      :key="wItem.id"
+                      class="control-dot"
+                      :class="{ active: wIdx === activeWarningIndex, [wItem.level]: true }"
+                      @click="activeWarningIndex = wIdx"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Case: Joint Venture Companies Status -->
+              <div v-else-if="item.chartType === 'jv_companies'" class="jv-companies-card">
+                <!-- Summary Bar -->
+                <div class="jv-summary-bar">
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">合资公司</span>
+                    <span class="jv-sum-val cyan">6 <span class="unit">家</span></span>
+                  </div>
+                  <div class="jv-sum-divider"></div>
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">交工委派</span>
+                    <span class="jv-sum-val blue">28 <span class="unit">人</span></span>
+                  </div>
+                  <div class="jv-sum-divider"></div>
+                  <div class="jv-summary-item">
+                    <span class="jv-sum-label">年度总营收</span>
+                    <span class="jv-sum-val gold">2.85 <span class="unit">亿元</span></span>
+                  </div>
+                </div>
+
+                <!-- JV List Container -->
+                <div class="jv-list-container">
+                  <div class="jv-list-header">
+                    <span class="col-name">合资公司名称</span>
+                    <span class="col-share">股权比例</span>
+                    <span class="col-staff">委派人员</span>
+                    <span class="col-revenue">年度营收</span>
+                  </div>
+                  <div class="jv-list-body custom-scrollbar">
+                    <div 
+                      v-for="(jv, jvIdx) in jvCompanyList" 
+                      :key="jvIdx" 
+                      class="jv-row-item"
+                    >
+                      <div class="col-name" :title="jv.jvName">
+                        <span class="dot"></span>
+                        <span class="name-text">{{ jv.jvName }}</span>
+                      </div>
+                      <div class="col-share">
+                        <span class="share-badge" :class="getShareBadgeClass(jv.shareNum)">{{ jv.share }}</span>
+                      </div>
+                      <div class="col-staff">
+                        <i class="el-icon-user"></i>
+                        <span class="staff-num">{{ jv.staffCount }}人</span>
+                      </div>
+                      <div class="col-revenue">
+                        <span class="rev-num">{{ jv.revenue }}</span>
+                        <span class="rev-unit">万</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div v-else :ref="'leftChart' + idx" class="echart-box"></div>
             </div>
           </div>
@@ -638,7 +647,12 @@
             class="card-item" 
             v-for="(item, idx) in currentTabConfig.right" 
             :key="'r-' + idx"
-            :class="{ 'receivables-card-item': item.chartType === 'receivables_info', 'jv-card-item': item.chartType === 'jv_companies' }"
+            :class="{ 
+              'receivables-card-item': item.chartType === 'receivables_info', 
+              'jv-card-item': item.chartType === 'jv_companies',
+              'operation-card-item': item.chartType === 'group_operation',
+              'regional-card-item': item.chartType === 'regional_market'
+            }"
           >
             <ScreenSubtitle :name="item.title">
               <template #right>
@@ -653,7 +667,12 @@
                 </el-button>
               </template>
             </ScreenSubtitle>
-            <div class="chart-wrapper" :class="{ 'receivables-chart-wrapper': item.chartType === 'receivables_info', 'jv-chart-wrapper': item.chartType === 'jv_companies' }">
+            <div class="chart-wrapper" :class="{ 
+              'receivables-chart-wrapper': item.chartType === 'receivables_info', 
+              'jv-chart-wrapper': item.chartType === 'jv_companies',
+              'operation-chart-wrapper': item.chartType === 'group_operation',
+              'regional-chart-wrapper': item.chartType === 'regional_market'
+            }">
               <!-- Case 1: Project Info -->
               <div v-if="item.chartType === 'project_info'" class="project-info-side-card">
                 <!-- Summary Row -->
@@ -716,7 +735,119 @@
                 </div>
               </div>
 
-              <!-- Case 2: Group Accounts Receivable (Standalone Card) -->
+              <!-- Case 2: Group Operation Dashboard -->
+              <div v-else-if="item.chartType === 'group_operation'" class="group-operation-card">
+                <!-- 1. 顶部：四个关键指标数据 (开累产值, 已上报计量, 已收预付款, 已收计量款) -->
+                <div class="op-metrics-grid">
+                  <div class="op-metric-cell accum">
+                    <div class="metric-icon"><i class="el-icon-s-data"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">开累产值</div>
+                      <div class="metric-value">45,280 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-metric-cell reported">
+                    <div class="metric-icon"><i class="el-icon-upload2"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已上报计量</div>
+                      <div class="metric-value">38,150 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-metric-cell prepayment">
+                    <div class="metric-icon"><i class="el-icon-wallet"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已收预付款</div>
+                      <div class="metric-value">2,170 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                  <div class="op-metric-cell payment">
+                    <div class="metric-icon"><i class="el-icon-money"></i></div>
+                    <div class="metric-content">
+                      <div class="metric-label">已收计量款</div>
+                      <div class="metric-value">32,770 <span class="unit">万</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. 下部：仪表图展示计量形象比、收款计量比 -->
+                <div class="op-gauges-row">
+                  <!-- 仪表图 1: 计量形象比 -->
+                  <div class="op-gauge-item">
+                    <div class="gauge-dial-wrap">
+                      <svg viewBox="0 0 120 70" class="gauge-svg">
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="7" stroke-linecap="round" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(0, 243, 255, 0.25)" stroke-width="7" stroke-dasharray="2 5" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="url(#gaugeCyanGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="119.1 141.37" />
+                        <defs>
+                          <linearGradient id="gaugeCyanGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#1b6cff" />
+                            <stop offset="100%" stop-color="#00f3ff" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div class="gauge-center-val cyan">
+                        84.25<span class="unit">%</span>
+                      </div>
+                    </div>
+                    <div class="gauge-label">计量形象比</div>
+                    <div class="gauge-sub">已上报计量 / 产值</div>
+                  </div>
+
+                  <!-- 仪表图 2: 收款计量比 -->
+                  <div class="op-gauge-item">
+                    <div class="gauge-dial-wrap">
+                      <svg viewBox="0 0 120 70" class="gauge-svg">
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(255, 255, 255, 0.1)" stroke-width="7" stroke-linecap="round" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="rgba(237, 190, 117, 0.25)" stroke-width="7" stroke-dasharray="2 5" />
+                        <path d="M 15,60 A 45,45 0 0,1 105,60" fill="none" stroke="url(#gaugeGoldGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="109.1 141.37" />
+                        <defs>
+                          <linearGradient id="gaugeGoldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#e6a23c" />
+                            <stop offset="100%" stop-color="#edbe75" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div class="gauge-center-val gold">
+                        77.16<span class="unit">%</span>
+                      </div>
+                    </div>
+                    <div class="gauge-label">收款计量比</div>
+                    <div class="gauge-sub">(已收计量款+已收预付款) / 产值</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Case 3: Regional Market Completion -->
+              <div v-else-if="item.chartType === 'regional_market'" class="regional-market-card">
+                <!-- Top 3 Key Metrics Summary -->
+                <div class="annual-op-summary-row">
+                  <div class="op-summary-item planned">
+                    <div class="op-summary-label"><i class="el-icon-date"></i> 年度计划产值</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num">50,000</span>
+                      <span class="op-summary-unit">万元</span>
+                    </div>
+                  </div>
+                  <div class="op-summary-item actual">
+                    <div class="op-summary-label"><i class="el-icon-circle-check"></i> 年度实际产值</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num">45,280</span>
+                      <span class="op-summary-unit">万元</span>
+                    </div>
+                  </div>
+                  <div class="op-summary-item rate">
+                    <div class="op-summary-label"><i class="el-icon-trophy"></i> 达成率</div>
+                    <div class="op-summary-val-wrap">
+                      <span class="op-summary-num highlight-cyan">90.56</span>
+                      <span class="op-summary-unit">%</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- EChart Container -->
+                <div :ref="'rightChart' + idx" class="echart-box-sub"></div>
+              </div>
+
+              <!-- Case 4: Group Accounts Receivable (Standalone Card) -->
               <div v-else-if="item.chartType === 'receivables_info'" class="receivables-mini-panel">
                 <div class="receivables-mini-table-wrapper" style="margin-top: 2px;">
                   <!-- Table Header -->
@@ -994,6 +1125,30 @@
         </div>
       </template>
     </Layout>
+
+    <!-- Top-right warning ticker -->
+    <div class="top-right-warning-ticker" @mouseenter="stopWarningTimer" @mouseleave="startWarningTimer">
+      <div class="ticker-label">
+        <i class="el-icon-warning-outline"></i>
+        <span>预警信息</span>
+      </div>
+      <div class="ticker-window">
+        <div class="ticker-track" :style="{ animationDuration: `${Math.max(warningList.length * 6, 24)}s` }">
+          <div
+            v-for="(wItem, wIdx) in marqueeWarningList"
+            :key="`m-${wItem.id}-${wIdx}`"
+            class="ticker-item"
+            :class="wItem.level"
+          >
+            <span class="ticker-dot"></span>
+            <span class="ticker-category">{{ wItem.category }}</span>
+            <span class="ticker-title">{{ wItem.title }}</span>
+            <span class="ticker-dept"><i class="el-icon-office-building"></i> {{ wItem.dept }}</span>
+            <span class="ticker-time">{{ wItem.time }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Watermark Overlay -->
     <WaterMaker />
@@ -1865,6 +2020,10 @@ export default {
     infoCount() {
       return (this.warningList || []).filter(w => w.level === 'info').length
     },
+    marqueeWarningList() {
+      const list = this.warningList || []
+      return list.length > 0 ? [...list, ...list] : []
+    },
     sortedOperationTableData() {
       const data = [...this.operationTableData];
       if (this.operationSortType === 'measureRatio') {
@@ -2581,6 +2740,7 @@ export default {
 @import '~@/styles/scrollbar.scss';
 
 .container {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2600,8 +2760,8 @@ export default {
   }
   
   ::v-deep .topLayout {
-    height: 152px !important;
-    top: 98px !important;
+    height: 198px !important;
+    top: 104px !important;
     left: 535px !important;
     width: 850px !important;
   }
@@ -2743,6 +2903,205 @@ export default {
 
   .indicator-row {
     box-sizing: border-box;
+  }
+
+  /* Reference style rows: 在建项目 / 在管基地 / 在管资产 */
+  .ref-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    height: 60px;
+    background: linear-gradient(180deg, rgba(8, 30, 68, 0.9) 0%, rgba(3, 16, 40, 0.95) 100%);
+    border: 1.5px solid rgba(0, 243, 255, 0.35);
+    border-radius: 8px;
+    padding: 8px 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(0, 243, 255, 0.12);
+    backdrop-filter: blur(8px);
+
+    .row-main-stat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 170px;
+      flex-shrink: 0;
+      padding-right: 12px;
+      border-right: 1px solid rgba(0, 243, 255, 0.2);
+
+      .main-stat-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+
+        i {
+          font-size: 22px;
+        }
+      }
+
+      .main-stat-info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+
+        .main-stat-label {
+          font-size: 13px;
+          color: rgba(255, 255, 255, 0.85);
+          font-weight: 600;
+          letter-spacing: 1px;
+        }
+
+        .main-stat-value {
+          display: flex;
+          align-items: baseline;
+          gap: 3px;
+
+          .main-stat-num {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: 'YJSZ', 'DIN Alternate', monospace, sans-serif;
+          }
+
+          .main-stat-unit {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.65);
+          }
+
+          .main-stat-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-left: 4px;
+            font-weight: 500;
+          }
+        }
+      }
+
+      &.project-main .main-stat-icon {
+        background: rgba(237, 190, 117, 0.12);
+        border: 1px solid rgba(237, 190, 117, 0.35);
+        i { color: #edbe75; }
+      }
+
+      &.base-main .main-stat-icon {
+        background: rgba(103, 194, 58, 0.12);
+        border: 1px solid rgba(103, 194, 58, 0.35);
+        i { color: #67C23A; }
+      }
+
+      &.asset-main .main-stat-icon {
+        background: rgba(0, 243, 255, 0.12);
+        border: 1px solid rgba(0, 243, 255, 0.35);
+        i { color: #00f3ff; }
+      }
+
+      &.profit-main .main-stat-icon {
+        background: rgba(237, 190, 117, 0.12);
+        border: 1px solid rgba(237, 190, 117, 0.35);
+        i { color: #edbe75; }
+      }
+
+      &.personnel-main .main-stat-icon {
+        background: rgba(0, 243, 255, 0.12);
+        border: 1px solid rgba(0, 243, 255, 0.35);
+        i { color: #00f3ff; }
+      }
+
+      &.equipment-main .main-stat-icon {
+        background: rgba(103, 194, 58, 0.12);
+        border: 1px solid rgba(103, 194, 58, 0.35);
+        i { color: #67C23A; }
+      }
+
+      &.office-main .main-stat-icon {
+        background: rgba(237, 190, 117, 0.12);
+        border: 1px solid rgba(237, 190, 117, 0.35);
+        i { color: #edbe75; }
+      }
+
+      &.area-main .main-stat-icon {
+        background: rgba(0, 243, 255, 0.12);
+        border: 1px solid rgba(0, 243, 255, 0.35);
+        i { color: #00f3ff; }
+      }
+
+      &.site-main .main-stat-icon {
+        background: rgba(0, 243, 255, 0.12);
+        border: 1px solid rgba(0, 243, 255, 0.35);
+        i { color: #00f3ff; }
+      }
+
+      &.alert-main .main-stat-icon {
+        background: rgba(245, 108, 108, 0.12);
+        border: 1px solid rgba(245, 108, 108, 0.35);
+        i { color: #f56c6c; }
+      }
+    }
+
+    .row-separator {
+      width: 1px;
+      align-self: stretch;
+      background: rgba(0, 243, 255, 0.2);
+      margin: 0 6px;
+    }
+
+    .row-sub-stats {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .sub-stat-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 4px 6px;
+        background: rgba(12, 38, 80, 0.45);
+        border: 1px solid rgba(0, 243, 255, 0.15);
+        border-radius: 4px;
+        min-width: 0;
+
+        .sub-stat-label {
+          font-size: 11px;
+          color: rgba(255, 255, 255, 0.75);
+          white-space: nowrap;
+        }
+
+        .sub-stat-sub {
+          font-size: 9px;
+          color: rgba(255, 255, 255, 0.45);
+          margin-top: -3px;
+          white-space: nowrap;
+        }
+
+        .sub-stat-value {
+          display: flex;
+          align-items: baseline;
+          gap: 2px;
+
+          .sub-num {
+            font-size: 17px;
+            font-weight: bold;
+            font-family: 'YJSZ', 'DIN Alternate', monospace, sans-serif;
+          }
+
+          .sub-unit {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+          }
+
+          .sub-ext {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-left: 3px;
+          }
+        }
+      }
+    }
   }
 
   /* Line 1: 一利五率 */
@@ -2931,147 +3290,182 @@ export default {
   }
 }
 
-/* === Header CSS styles (Matching Screenshot Visual Style) === */
+/* === Header CSS styles (Matching Reference Screenshot) === */
 .header-left {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   height: 100%;
-  padding-left: 20px;
+  padding-left: 8px;
 
   .header-brand-tag {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 14px;
-    color: #ffffff;
-    font-weight: 600;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
     letter-spacing: 1px;
 
     i {
       color: #00f3ff;
-      font-size: 16px;
+      font-size: 15px;
     }
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.2);
   }
 
   .header-hotline {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.85);
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
 
     i {
       color: #edbe75;
+      font-size: 13px;
+    }
+  }
+}
+
+.header-left,
+.header-right {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+.header-left {
+  padding-left: 18px;
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(0, 180, 255, 0.5);
+    }
+  }
+}
+
+.header-right {
+  padding-right: 18px;
+  justify-content: flex-end;
+  gap: 16px;
+
+  .header-time {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: #ffffff;
+    cursor: pointer;
+
+    i {
       font-size: 15px;
+      color: #00f3ff;
+    }
+  }
+
+  .header-fullscreen {
+    display: flex;
+    align-items: center;
+
+    ::v-deep i,
+    ::v-deep .el-icon-full-screen,
+    ::v-deep .el-icon-rank {
+      font-size: 16px;
+      color: #00f3ff;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #ffffff;
+        transform: scale(1.1);
+      }
     }
   }
 }
 
 .header-center-title {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding-top: 2px;
 
-  .cockpit-subtitle {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.9);
-    letter-spacing: 3px;
-    font-weight: 500;
-    margin-bottom: 3px;
-
-    i {
-      color: #00f3ff;
-      font-size: 15px;
-    }
-  }
-
-  .main-title-frame {
-    display: flex;
-    align-items: center;
+  .header-title-panel {
     position: relative;
+    width: 640px;
+    height: 92px;
+    background: linear-gradient(180deg, rgba(32, 100, 195, 0.95) 0%, rgba(20, 72, 150, 0.95) 100%);
+    clip-path: polygon(0% 0%, 100% 0%, 92% 100%, 8% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      inset 0 1px 0 rgba(120, 200, 255, 0.6),
+      0 8px 30px rgba(0, 60, 150, 0.45);
 
-    .title-wing {
-      width: 42px;
-      height: 26px;
-      position: relative;
-
-      &.left {
-        background: linear-gradient(90deg, transparent 0%, rgba(0, 243, 255, 0.35) 100%);
-        clip-path: polygon(100% 0, 0 100%, 100% 100%);
-        border-bottom: 2px solid #00f3ff;
-      }
-
-      &.right {
-        background: linear-gradient(270deg, transparent 0%, rgba(0, 243, 255, 0.35) 100%);
-        clip-path: polygon(0 0, 100% 100%, 0 100%);
-        border-bottom: 2px solid #00f3ff;
-      }
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 8%;
+      right: 8%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(150, 220, 255, 0.9), transparent);
     }
 
-    .title-badge-box {
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent 5%, rgba(100, 190, 255, 0.6) 20%, rgba(150, 225, 255, 0.9) 50%, rgba(100, 190, 255, 0.6) 80%, transparent 95%);
+    }
+
+    .title-panel-inner {
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 3px 18px;
-      background: linear-gradient(180deg, rgba(8, 55, 130, 0.85) 0%, rgba(3, 20, 55, 0.95) 100%);
-      border: 1.5px solid #00f3ff;
-      border-radius: 4px;
-      box-shadow: 0 0 16px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.25);
+      justify-content: center;
+      padding: 0 60px;
 
-      .zj-logo-badge {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 2px 6px;
-        background: rgba(255, 255, 255, 0.12);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 3px;
-        font-size: 11px;
+      .title-main-text {
+        font-size: 34px;
+        font-weight: 800;
         color: #ffffff;
-        font-weight: bold;
-        letter-spacing: 1px;
-
-        i {
-          font-size: 13px;
-          color: #00f3ff;
-        }
-      }
-
-      .title-text-wrap {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .main-title-text {
-          font-size: 24px;
-          font-weight: 800;
-          color: #ffffff;
-          letter-spacing: 4px;
-          text-shadow: 0 0 12px #00f3ff, 0 2px 8px rgba(0, 243, 255, 0.6);
-          font-family: '黑体', 'Microsoft YaHei', sans-serif;
-        }
-
-        .swap-icon {
-          font-size: 13px;
-          color: #00f3ff;
-          padding: 2px;
-          border: 1px solid rgba(0, 243, 255, 0.5);
-          border-radius: 3px;
-          cursor: pointer;
-          transition: all 0.2s;
-
-          &:hover {
-            background: rgba(0, 243, 255, 0.2);
-            transform: scale(1.1);
-          }
-        }
+        letter-spacing: 8px;
+        text-shadow: 0 0 10px rgba(100, 195, 255, 0.7), 0 0 22px rgba(0, 120, 255, 0.45);
+        font-family: '黑体', 'Microsoft YaHei', sans-serif;
       }
     }
   }
@@ -3079,74 +3473,70 @@ export default {
 
 .header-right-panel {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
+  align-items: center;
+  justify-content: flex-end;
   height: 100%;
-  gap: 6px;
-  padding-right: 20px;
+  gap: 14px;
+  padding-right: 8px;
 
-  .top-row {
+  .header-time {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+    letter-spacing: 1px;
+  }
+
+  .header-actions {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
 
-    .user-dropdown {
+    .action-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      background: rgba(0, 243, 255, 0.08);
+      border: 1px solid rgba(0, 243, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      transition: all 0.2s;
 
-      .user-dropdown-link {
+      &:hover {
+        background: rgba(0, 243, 255, 0.2);
+        border-color: rgba(0, 243, 255, 0.5);
+        transform: scale(1.1);
+      }
+
+      i {
         font-size: 13px;
-        color: rgba(255, 255, 255, 0.9);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: color 0.2s;
-
-        &:hover {
-          color: #00f3ff;
-        }
+        color: #00f3ff;
       }
     }
   }
 
-  .bottom-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+  .user-dropdown {
+    cursor: pointer;
 
-    .filter-dropdown {
-      cursor: pointer;
-
-      .dropdown-link {
-        font-size: 13px;
-        color: rgba(255, 255, 255, 0.85);
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        transition: color 0.2s;
-
-        &:hover {
-          color: #00f3ff;
-        }
-      }
-    }
-
-    .divider {
-      color: rgba(255, 255, 255, 0.3);
-      font-size: 12px;
-    }
-
-    .export-btn {
+    .user-dropdown-link {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.85);
-      cursor: pointer;
+      gap: 6px;
       transition: color 0.2s;
 
-      i {
-        font-size: 14px;
+      .user-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 243, 255, 0.15);
+        border: 1px solid rgba(0, 243, 255, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
         color: #00f3ff;
       }
 
@@ -3155,6 +3545,112 @@ export default {
       }
     }
   }
+}
+
+/* === Top-right warning ticker === */
+.top-right-warning-ticker {
+  position: absolute;
+  top: 96px;
+  right: 30px;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 480px;
+  height: 40px;
+  padding: 0 12px;
+  background: rgba(8, 24, 52, 0.85);
+  border: 1px solid rgba(255, 77, 79, 0.45);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 0 12px rgba(255, 77, 79, 0.08);
+  backdrop-filter: blur(10px);
+
+  .ticker-label {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #ff4d4f;
+
+    i {
+      font-size: 16px;
+    }
+  }
+
+  .ticker-window {
+    flex: 1;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+
+  .ticker-track {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    white-space: nowrap;
+    animation: tickerScroll linear infinite;
+    will-change: transform;
+  }
+
+  &:hover .ticker-track {
+    animation-play-state: paused;
+  }
+
+  .ticker-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.9);
+
+    .ticker-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    &.danger .ticker-dot { background: #ff4d4f; box-shadow: 0 0 6px #ff4d4f; }
+    &.warning .ticker-dot { background: #e6a23c; box-shadow: 0 0 6px #e6a23c; }
+    &.info .ticker-dot { background: #00f3ff; box-shadow: 0 0 6px #00f3ff; }
+
+    .ticker-category {
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+
+    &.danger .ticker-category { color: #ff4d4f; }
+    &.warning .ticker-category { color: #e6a23c; }
+    &.info .ticker-category { color: #00f3ff; }
+
+    .ticker-title {
+      flex-shrink: 0;
+    }
+
+    .ticker-dept {
+      color: rgba(255, 255, 255, 0.6);
+      flex-shrink: 0;
+
+      i {
+        font-size: 10px;
+      }
+    }
+
+    .ticker-time {
+      color: rgba(255, 255, 255, 0.45);
+      flex-shrink: 0;
+    }
+  }
+}
+
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 
 /* === Compact Stats Container === */

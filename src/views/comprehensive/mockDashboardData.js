@@ -5,13 +5,13 @@ export const mockDataModel = {
   ref_inner: {
     left: [
       { title: '市场拓展-新签合同额', chartType: 'market_expansion', desc: '统计及深度分析年度新签合同指标及拓展完成情况。' },
-      { title: '集团经营情况', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
-      { title: '本年度经营完成情况', chartType: 'regional_market', desc: '展示本年度各月度计划与实际完成产值及完成达成率分析。' }
-    ],
-    right: [
-      { title: '集团应收款情况', chartType: 'receivables_info', desc: '按区域统计应收款考核基数、本年收款、完成比例、未收款金额并支持下钻明细分析。' },
       { title: '进度预警', chartType: 'output_conversion', desc: '实时监控并轮播项目部应收款回款进度过慢、产值完成率过低、计量形象比过低等生产经营风险预警消息。' },
       { title: '合资公司情况', chartType: 'jv_companies', desc: '统计各合资公司的持股股权比例、交工委派人员数量及年度营业收入情况。' }
+    ],
+    right: [
+      { title: '经营情况', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
+      { title: '经营完成情况', chartType: 'regional_market', desc: '展示本年度各月度计划与实际完成产值及完成达成率分析。' },
+      { title: '收款情况', chartType: 'receivables_info', desc: '按区域统计应收款考核基数、本年收款、完成比例、未收款金额并支持下钻明细分析。' }
     ]
   },
   wages_total: {

@@ -116,7 +116,7 @@ export default {
 .header {
   position: absolute;
   width: 1920px;
-  height: 110px;
+  height: 92px;
   top: 0;
   left: 0;
   z-index: 10;
@@ -124,7 +124,7 @@ export default {
 
 .topLayout {
   position: absolute;
-  top: 130px;
+  top: 104px;
   left: 540px;
   width: 840px;
   z-index: 10;
@@ -190,7 +190,7 @@ export default {
 .rightLayout {
   width: 520px;
   position: absolute;
-  top: 110px;
+  top: 102px;
   bottom: 95px;
 }
 
