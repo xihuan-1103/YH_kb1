@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="container" :style="{ '--top-layout-height': topLayoutHeight }">
     <Layout ref="asideLayout">
       <!-- 1. Header Section Slot -->
       <template #header>
@@ -31,6 +31,10 @@
               <div class="header-user">
                 <i class="el-icon-user-solid"></i>
                 <span>周末</span>
+              </div>
+              <div class="header-notice" @click="openMaintenanceNotice">
+                <i class="el-icon-bell"></i>
+                <span class="notice-dot"></span>
               </div>
               <div class="header-fullscreen">
                 <FullScreen />
@@ -385,6 +389,7 @@
             class="card-item" 
             :class="{ 
               'market-card-item': item.chartType === 'market_expansion',
+              'market-bid-item': item.chartType === 'market_bid',
               'operation-card-item': item.chartType === 'group_operation', 
               'regional-card-item': item.chartType === 'regional_market',
               'warning-card-item': item.chartType === 'output_conversion',
@@ -408,6 +413,7 @@
             </ScreenSubtitle>
             <div class="chart-wrapper" :class="{ 
               'market-chart-wrapper': item.chartType === 'market_expansion',
+              'bid-chart-wrapper': item.chartType === 'market_bid',
               'operation-chart-wrapper': item.chartType === 'group_operation', 
               'regional-chart-wrapper': item.chartType === 'regional_market',
               'warning-chart-wrapper': item.chartType === 'output_conversion',
@@ -418,7 +424,7 @@
                 <div class="market-highlight-row">
                   <div class="highlight-item accumulated">
                     <div class="highlight-label">
-                      <span class="dot">●</span>本年度开累金额
+                      <span class="dot">●</span>本年度在建项目合同额
                     </div>
                     <div class="highlight-value-wrap">
                       <span class="highlight-value">26,800</span>
@@ -427,7 +433,7 @@
                   </div>
                   <div class="highlight-item target">
                     <div class="highlight-label">
-                      <span class="dot">●</span>本年度目标金额
+                      <span class="dot">●</span>本年度目标营收
                     </div>
                     <div class="highlight-value-wrap">
                       <span class="highlight-value">35,000</span>
@@ -445,58 +451,34 @@
                   </div>
                 </div>
 
-                <!-- Monthly New Contract Amount + Target Progress Line EChart -->
-                <div :ref="'leftChart' + idx" class="echart-box-sub market-chart-sub"></div>
-
-                <!-- Qualification Annual Contract Amount Stats -->
-                <div class="market-qualification-row">
-                  <div class="mini-section-title">
-                    <i class="el-icon-s-check"></i>
-                    <span>按资质统计</span>
-                  </div>
-                  <div class="qualification-list">
+                <!-- 按资质 / 按区域 / 按管养范围 / 按项目类型 统计 Tab 模块 -->
+                <div class="market-analyze-module">
+                  <div class="analyze-tabs">
                     <div
-                      v-for="(qItem, qIdx) in normalizedQualificationStats"
-                      :key="qIdx"
-                      class="qualification-item"
+                      v-for="tab in marketAnalyzeTabs"
+                      :key="tab.key"
+                      class="analyze-tab"
+                      :class="{ active: marketActiveTab === tab.key }"
+                      @click="switchMarketTab(tab.key)"
                     >
-                      <div class="qual-info">
-                        <span class="qual-name">{{ qItem.name }}</span>
-                        <span class="qual-value">{{ qItem.value.toLocaleString() }} <span class="unit">{{ qItem.unit }}</span></span>
-                      </div>
-                      <div class="qual-bar-track">
-                        <div
-                          class="qual-bar-fill"
-                          :style="{ width: qItem.percent + '%' }"
-                        ></div>
-                      </div>
+                      {{ tab.label }}
+                    </div>
+                  </div>
+                  <div ref="marketAnalyzeChart" class="analyze-chart"></div>
+                </div>
+              </div>
+              <div v-else-if="item.chartType === 'market_bid'" class="market-bid-card">
+                <div class="bid-total-row">
+                  <div class="bid-total-icon"><i class="el-icon-s-order"></i></div>
+                  <div class="bid-total-info">
+                    <div class="bid-total-label">本年中标合同额总数</div>
+                    <div class="bid-total-value">
+                      <span class="bid-total-num">{{ filteredMarketBidTotal.toLocaleString() }}</span>
+                      <span class="bid-total-unit">万元</span>
                     </div>
                   </div>
                 </div>
-
-                <!-- Region Annual Contract Amount Stats -->
-                <div class="market-region-row">
-                  <div class="mini-section-title">
-                    <i class="el-icon-map-location"></i>
-                    <span>按区域统计</span>
-                  </div>
-                  <div class="region-bars">
-                    <div
-                      v-for="(rItem, rIdx) in normalizedRegionStats"
-                      :key="rIdx"
-                      class="region-bar-item"
-                    >
-                      <span class="region-name">{{ rItem.name }}</span>
-                      <div class="region-bar-track">
-                        <div
-                          class="region-bar-fill"
-                          :style="{ width: rItem.percent + '%' }"
-                        ></div>
-                      </div>
-                      <span class="region-value">{{ rItem.value.toLocaleString() }}</span>
-                    </div>
-                  </div>
-                </div>
+                <div ref="marketBidChart" class="bid-qualification-chart"></div>
               </div>
               <div v-else-if="item.chartType === 'group_operation'" class="group-operation-card">
                 <!-- 1. 顶部：四个关键指标数据 (开累产值, 已上报计量, 已收预付款, 已收计量款) -->
@@ -1160,8 +1142,8 @@
     <el-dialog
       :title="detailDialogTitle"
       :visible.sync="detailDialogVisible"
-      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? '80%' : '1000px'"
-      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation') ? 'market-dialog-large' : ''"
+      :width="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation' || activeDetailItem.chartType === 'market_bid') ? '80%' : '1000px'"
+      :custom-class="activeDetailItem && (activeDetailItem.chartType === 'market_expansion' || activeDetailItem.chartType === 'regional_market' || activeDetailItem.chartType === 'project_info' || activeDetailItem.chartType === 'group_operation' || activeDetailItem.chartType === 'market_bid') ? 'market-dialog-large' : ''"
       append-to-body
       class="detail-drill-dialog"
       @opened="handleDialogOpened"
@@ -1449,38 +1431,38 @@
             
             <div style="display: flex; gap: 12px; margin-bottom: 12px; align-items: center;">
               <span class="sort-tip-label">排序方式：</span>
-              <el-radio-group v-model="operationSortType" size="mini" fill="#00f3ff">
+              <el-radio-group v-model="operationSortType" size="mini">
                 <el-radio-button label="measureRatio">按计量形象比降序</el-radio-button>
                 <el-radio-button label="collectionRatio">按收款计量比降序</el-radio-button>
               </el-radio-group>
             </div>
 
-            <div class="table-container" style="flex: 1;">
-              <el-table 
-                :data="sortedOperationTableData" 
-                stripe 
+            <div class="table-container operation-table-container" style="flex: 1;">
+              <el-table
+                :data="sortedOperationTableData"
+                stripe
                 size="mini"
                 height="100%"
                 style="width: 100%"
-                class="custom-image-style-table"
+                class="custom-image-style-table operation-detail-table"
               >
-                <el-table-column prop="region" label="区域/项目" width="140px" fixed />
-                <el-table-column prop="accumValue" label="年度累计产值(万)" sortable width="130px" />
-                <el-table-column prop="reportedMeasure" label="已上报计量(万)" sortable width="120px" />
-                <el-table-column label="已批复计量(万)" width="180px">
+                <el-table-column prop="region" label="区域/项目" min-width="120px" show-overflow-tooltip />
+                <el-table-column prop="accumValue" label="年度累计产值(万)" sortable min-width="120px" align="right" />
+                <el-table-column prop="reportedMeasure" label="已上报计量(万)" sortable min-width="120px" align="right" />
+                <el-table-column label="已批复计量(万)" min-width="140px" align="right">
                   <template slot-scope="scope">
                     <span>{{ scope.row.approvedMeasure }}</span>
                     <span class="deduct-tip">(扣款: {{ scope.row.deductAmount }}万)</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="prepayment" label="已收预付款(万)" sortable width="120px" />
-                <el-table-column prop="measurePayment" label="已收计量款(万)" sortable width="120px" />
-                <el-table-column prop="measureRatio" label="计量形象比(%)" sortable width="120px">
+                <el-table-column prop="prepayment" label="已收预付款(万)" sortable min-width="120px" align="right" />
+                <el-table-column prop="measurePayment" label="已收计量款(万)" sortable min-width="120px" align="right" />
+                <el-table-column prop="measureRatio" label="计量形象比(%)" sortable min-width="120px" align="right">
                   <template slot-scope="scope">
                     <span style="color: #00f3ff; font-weight: bold;">{{ scope.row.measureRatio }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column prop="collectionRatio" label="收款计量比(%)" sortable width="120px">
+                <el-table-column prop="collectionRatio" label="收款计量比(%)" sortable min-width="120px" align="right">
                   <template slot-scope="scope">
                     <span :style="{ color: parseFloat(scope.row.collectionRatio) >= 80 ? '#67C23A' : parseFloat(scope.row.collectionRatio) >= 70 ? '#E6A23C' : '#F56C6C' }">
                       {{ scope.row.collectionRatio }}
@@ -1491,6 +1473,45 @@
             </div>
           </div>
 
+        </div>
+
+        <!-- Custom layout for market_bid: 新签合同额合同明细 -->
+        <div v-else-if="activeDetailItem.chartType === 'market_bid'" class="market-expansion-dialog-body">
+          <div class="market-section-block" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="market-section-title">
+              <span class="title-decorator"></span>
+              <span>本年度新签合同明细列表（共 {{ marketBidContractList.length }} 条）</span>
+            </div>
+            <div class="table-container" style="flex: 1;">
+              <el-table
+                :data="marketBidContractList"
+                stripe
+                size="mini"
+                height="100%"
+                style="width: 100%"
+                class="custom-image-style-table market-bid-contract-table"
+              >
+                <el-table-column type="index" label="序号" width="60px" align="center" />
+                <el-table-column prop="contractName" label="合同名称" min-width="220px" show-overflow-tooltip sortable />
+                <el-table-column prop="bidQualification" label="中标资质" min-width="120px" align="center" sortable>
+                  <template slot-scope="scope">
+                    <el-tag size="mini" effect="dark" :type="scope.row.bidQualification === '交工沪杭甬' ? 'primary' : scope.row.bidQualification === '顺畅养护' ? 'success' : 'warning'">
+                      {{ scope.row.bidQualification }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="projectDept" label="履约项目部" min-width="160px" show-overflow-tooltip sortable />
+                <el-table-column prop="contractSubject" label="合同主体信息" min-width="180px" show-overflow-tooltip sortable />
+                <el-table-column prop="contractStatus" label="合同状态" min-width="100px" align="center" sortable>
+                  <template slot-scope="scope">
+                    <el-tag size="mini" effect="dark" :type="scope.row.contractStatus === '已签订' ? 'success' : scope.row.contractStatus === '履行中' ? 'primary' : 'info'">
+                      {{ scope.row.contractStatus }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
         </div>
 
         <!-- Custom layout for jv_companies -->
@@ -1839,6 +1860,51 @@
         </div>
       </div>
     </el-dialog>
+
+    <!-- Maintenance Special Situation Notice Dialog -->
+    <el-dialog
+      title="养护特殊情况说明"
+      :visible.sync="maintenanceNoticeVisible"
+      width="720px"
+      :close-on-click-modal="true"
+      custom-class="maintenance-notice-dialog"
+    >
+      <div class="maintenance-notice-body">
+        <div class="notice-section">
+          <div class="notice-section-title">
+            <span class="section-dot"></span>
+            一、新签合同额与在建项目合同额的区别
+          </div>
+          <div class="notice-section-content">
+            <p>养护业务中存在中标合同额、年度合同额、在建项目合同额等多种统计口径，用途各不相同：</p>
+            <ul>
+              <li>全寿命养护合同或横跨多个年度的合同，需要按年度拆分计算当年的合同额。</li>
+              <li>不同统计口径适用于不同管理场景：经营分析更关注年度新签合同额，工程管理更关注在建项目合同额。</li>
+              <li>由于存在跨年度合同，新签合同额与营收往往差异较大，单纯用新签合同额衡量会失去实际决策意义。</li>
+              <li>因此本看板采用<strong>在建项目本年合同额</strong>进行统计，表示项目在本年度所占的合同额，该指标可与营收进行直接比对。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="notice-section">
+          <div class="notice-section-title">
+            <span class="section-dot"></span>
+            二、计量形象比说明
+          </div>
+          <div class="notice-section-content">
+            <p>养护业务的计量形象比与新建项目存在明显差异，主要原因包括：</p>
+            <ul>
+              <li>养护项目中存在较多合同尚未签订但实际施工已开展的情况，导致实际产值与计量不匹配。</li>
+              <li>上述情况进一步影响营收数据的准确性。</li>
+              <li>与新建项目不同，养护各月度计划产值受天气、交通、业务承接不确定性等多种因素影响，产值计划偏差率较大。</li>
+              <li>目前月度计划根据过往年度每月产值占比反算得出，且集团报定计划后调整困难。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="maintenance-notice-footer">
+        <el-button type="primary" size="small" @click="maintenanceNoticeVisible = false">关闭</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -1904,6 +1970,9 @@ export default {
       // Warning Detail Dialog States
       warningDialogVisible: false,
       warningSearchText: '',
+
+      // Maintenance Special Notice Dialog
+      maintenanceNoticeVisible: false,
 
       // Joint Venture Companies Data
       jvCompanyList: [
@@ -2101,6 +2170,52 @@ export default {
         { name: '湖州', value: 3010 },
         { name: '丽水', value: 2560 }
       ],
+      marketScopeStats: [
+        { name: '省内交投内', value: 22680 },
+        { name: '省内交投外', value: 14500 },
+        { name: '省外', value: 10800 },
+        { name: '国外', value: 4500 }
+      ],
+      marketProjectTypeStats: [
+        { name: '日常', value: 15200 },
+        { name: '专项', value: 19800 },
+        { name: '全域/全寿命', value: 12480 },
+        { name: '其他', value: 5000 }
+      ],
+
+      // Market Bid: total + qualification breakdown
+      marketBidTotal: 68500,
+      marketBidQualificationStats: [
+        { name: '交工沪杭甬', value: 28600 },
+        { name: '顺畅养护', value: 22100 },
+        { name: '交工养护', value: 17800 }
+      ],
+      marketBidChartInstance: null,
+      // 新签合同额弹窗：合同明细列表
+      marketBidContractList: [
+        { contractName: '2026年杭州绕城公路北线路桥日常养护项目', bidQualification: '交工沪杭甬', projectDept: '杭州日常第一项目部', contractSubject: '浙江交工沪杭甬养护有限公司 / 杭州绕城高速管理处', contractStatus: '已签订' },
+        { contractName: '2026年杭徽高速浙江段边坡综合绿化保洁合同', bidQualification: '交工沪杭甬', projectDept: '杭州绿化大项目部', contractSubject: '浙江交工沪杭甬养护有限公司 / 杭徽高速业主办', contractStatus: '履行中' },
+        { contractName: '2026年诸永高速绍兴段中修及防撞钢护栏改造专项', bidQualification: '顺畅养护', projectDept: '诸永大修中修项目部', contractSubject: '浙江顺畅高等级公路养护有限公司 / 绍兴高速运营公司', contractStatus: '已签订' },
+        { contractName: '2026年度绍兴高速片区桥隧日常巡查保修维护', bidQualification: '顺畅养护', projectDept: '绍兴桥隧常规项目部', contractSubject: '浙江顺畅高等级公路养护有限公司 / 绍兴市交投集团', contractStatus: '履行中' },
+        { contractName: '2026年舟山跨海大桥特大索桥定期健康监测与防腐', bidQualification: '交工养护', projectDept: '舟山海大桥专项部', contractSubject: '浙江交工养护工程有限公司 / 舟山跨海大桥管理中心', contractStatus: '已签订' },
+        { contractName: '2025年宁波绕城高速路面微表处摊铺及预防性保养', bidQualification: '交工沪杭甬', projectDept: '甬台温第二项目部', contractSubject: '浙江交工沪杭甬养护有限公司 / 宁波绕城高速运营公司', contractStatus: '履行中' },
+        { contractName: '2026年杭浦高速嘉兴段机电收费系统智慧化升级', bidQualification: '交工养护', projectDept: '钱江通道机电维护部', contractSubject: '浙江交工养护工程有限公司 / 嘉兴杭浦高速公司', contractStatus: '已签订' },
+        { contractName: '2025年度嘉兴辖区常规波形梁钢护栏保洁维修', bidQualification: '顺畅养护', projectDept: '嘉兴常规维护项目部', contractSubject: '浙江顺畅高等级公路养护有限公司 / 嘉兴市交投集团', contractStatus: '履行中' },
+        { contractName: '2026年诸永高速台州神仙居风景区边坡微型桩加固', bidQualification: '交工养护', projectDept: '台州常规维护项目部', contractSubject: '浙江交工养护工程有限公司 / 台州神仙居景区管委会', contractStatus: '已签订' },
+        { contractName: '2025年台州片区长周期管养一体化示范协议A标段', bidQualification: '交工沪杭甬', projectDept: '台州全域项目部', contractSubject: '浙江交工沪杭甬养护有限公司 / 台州市交通运输局', contractStatus: '履行中' },
+        { contractName: '2026年甬台温高速温州大桥主拱表面涂装抗风整治', bidQualification: '交工养护', projectDept: '温州特种加固项目部', contractSubject: '浙江交工养护工程有限公司 / 温州甬台温高速公司', contractStatus: '已签订' },
+        { contractName: '2026年度温州片区隧道大照明系统应急检修与更换', bidQualification: '顺畅养护', projectDept: '温州综合日常项目部', contractSubject: '浙江顺畅高等级公路养护有限公司 / 温州交投运营公司', contractStatus: '履行中' }
+      ],
+
+      // Market Expansion sub-module tabs
+      marketAnalyzeTabs: [
+        { key: 'qualification', label: '按资质统计' },
+        { key: 'region', label: '按区域统计' },
+        { key: 'scope', label: '按管养范围统计' },
+        { key: 'type', label: '按项目类型统计' }
+      ],
+      marketActiveTab: 'qualification',
+      marketAnalyzeChartInstance: null,
 
       // Progress Warning Carousel State
       activeWarningIndex: 0,
@@ -2310,6 +2425,9 @@ export default {
       if (!this.activeDetailItem) return '指标深度下钻'
       return `【下钻分析】${this.activeDetailItem.title}`
     },
+    topLayoutHeight() {
+      return ['project', 'office'].includes(this.currentDistributionType) ? '140px' : '220px'
+    },
     // Dynamic filtered counts for map/mode indicators
     filteredCounts() {
       if (this.filterCompanies.length > 0) {
@@ -2366,6 +2484,21 @@ export default {
         asphaltStation: '19', equipmentStation: '15', waterStableStation: '10',
         stationTotal: '44'
       }
+    },
+    filteredMarketBidQualificationStats() {
+      if (this.filterCompanies.length > 0) {
+        return this.marketBidQualificationStats.filter(item => item.name === this.filterCompanies[0])
+      }
+      return this.marketBidQualificationStats
+    },
+    filteredMarketQualificationStats() {
+      if (this.filterCompanies.length > 0) {
+        return this.marketQualificationStats.filter(item => item.name === this.filterCompanies[0])
+      }
+      return this.marketQualificationStats
+    },
+    filteredMarketBidTotal() {
+      return this.filteredMarketBidQualificationStats.reduce((sum, item) => sum + item.value, 0)
     },
     // Top indicator dashboard data computed by current map distribution type
     currentTopData() {
@@ -2624,6 +2757,12 @@ export default {
     if (this.scopeSubChartInstance) {
       this.scopeSubChartInstance.dispose()
     }
+    if (this.marketAnalyzeChartInstance) {
+      this.marketAnalyzeChartInstance.dispose()
+    }
+    if (this.marketBidChartInstance) {
+      this.marketBidChartInstance.dispose()
+    }
   },
   methods: {
     handleDistributionChange(type) {
@@ -2663,6 +2802,9 @@ export default {
     openWarningDialog() {
       this.warningDialogVisible = true
       this.warningSearchText = ''
+    },
+    openMaintenanceNotice() {
+      this.maintenanceNoticeVisible = true
     },
     getWarningLevelLabel(level) {
       const map = { danger: '严重', warning: '警告', info: '提示' }
@@ -2751,6 +2893,15 @@ export default {
       this.activeDetailItem = item
       
       this.selectedScopeKey = 'provIn'
+
+      // 新签合同额使用自定义合同列表数据，不通过 generateDrillData 加载
+      if (item.chartType === 'market_bid') {
+        this.activeDetailKPIs = []
+        this.activeDetailTableData = []
+        this.activeDetailColumns = []
+        this.detailDialogVisible = true
+        return
+      }
 
       // Pull dynamic structured data model for down-drill pop-up
       const dataModel = generateDrillData(item.chartType)
@@ -2948,6 +3099,166 @@ export default {
         }
       })
     },
+
+    // Market Expansion sub-module tab switching
+    switchMarketTab(key) {
+      if (this.marketActiveTab === key) return
+      this.marketActiveTab = key
+      this.$nextTick(() => {
+        this.renderMarketAnalyzeChart()
+      })
+    },
+
+    // Render chart inside market-expansion sub-module tabs
+    renderMarketAnalyzeChart() {
+      const rawContainer = this.$refs.marketAnalyzeChart
+      const container = Array.isArray(rawContainer) ? rawContainer[0] : rawContainer
+      if (!container) return
+
+      if (this.marketAnalyzeChartInstance) {
+        this.marketAnalyzeChartInstance.dispose()
+      }
+      this.marketAnalyzeChartInstance = echarts.init(container)
+
+      const textWhite = 'rgba(255, 255, 255, 0.85)'
+      const mainCyan = '#00f3ff'
+      const mainBlue = '#1b6cff'
+      const mainGold = '#edbe75'
+      const mainGreen = '#67C23A'
+
+      let option = {}
+
+      if (this.marketActiveTab === 'qualification') {
+        const data = this.filteredMarketQualificationStats.map((item, index) => {
+          const colors = [mainCyan, mainBlue, mainGold]
+          return { value: item.value, name: item.name, itemStyle: { color: colors[index % colors.length] } }
+        })
+        option = {
+          tooltip: { trigger: 'item', formatter: '{b}: {c} 万元 ({d}%)' },
+          legend: {
+            orient: 'vertical',
+            left: '2%',
+            top: 'center',
+            itemWidth: 8,
+            itemHeight: 8,
+            textStyle: { color: textWhite, fontSize: 10 }
+          },
+          series: [{
+            name: '按资质统计',
+            type: 'pie',
+            radius: ['45%', '75%'],
+            center: ['55%', '50%'],
+            avoidLabelOverlap: true,
+            label: { show: true, color: textWhite, formatter: '{b}\n{d}%', fontSize: 11 },
+            emphasis: { label: { show: true, fontSize: 11, fontWeight: 'bold' } },
+            data
+          }]
+        }
+      } else {
+        const typeMap = {
+          region: { data: this.marketRegionStats, title: '按区域统计', color: mainCyan },
+          scope: { data: this.marketScopeStats, title: '按管养范围统计', color: mainGold },
+          type: { data: this.marketProjectTypeStats, title: '按项目类型统计', color: mainGreen }
+        }
+        const config = typeMap[this.marketActiveTab]
+        const raw = config.data
+        const names = raw.map(i => i.name)
+        const values = raw.map(i => i.value)
+        const title = config.title
+        const color = new echarts.graphic.LinearGradient(0, 0, 1, 0, [{ offset: 0, color: `${config.color}33` }, { offset: 1, color: config.color }])
+
+        option = {
+          title: {
+            text: title,
+            left: '2%',
+            top: '2%',
+            textStyle: { color: textWhite, fontSize: 11, fontWeight: 'normal' }
+          },
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c} 万元' },
+          grid: { left: '3%', right: '8%', bottom: '3%', top: '14%', containLabel: true },
+          xAxis: {
+            type: 'value',
+            axisLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 10 },
+            splitLine: { lineStyle: { color: 'rgba(41,94,151,0.2)' } }
+          },
+          yAxis: {
+            type: 'category',
+            data: names.reverse(),
+            axisLabel: { color: textWhite, fontSize: 10 },
+            axisTick: { show: false },
+            axisLine: { lineStyle: { color: 'rgba(41,94,151,0.35)' } }
+          },
+          series: [{
+            name: title,
+            type: 'bar',
+            data: values.reverse(),
+            barWidth: '55%',
+            label: { show: true, position: 'right', color: textWhite, fontSize: 10, formatter: '{c}' },
+            itemStyle: { color, borderRadius: [0, 4, 4, 0] }
+          }]
+        }
+      }
+
+      this.marketAnalyzeChartInstance.setOption(option)
+    },
+
+    // Render market-bid qualification horizontal bar chart
+    renderMarketBidChart() {
+      const rawContainer = this.$refs.marketBidChart
+      const container = Array.isArray(rawContainer) ? rawContainer[0] : rawContainer
+      if (!container) return
+
+      if (this.marketBidChartInstance) {
+        this.marketBidChartInstance.dispose()
+      }
+      this.marketBidChartInstance = echarts.init(container)
+
+      const textWhite = 'rgba(255, 255, 255, 0.85)'
+      const mainCyan = '#00f3ff'
+      const mainBlue = '#1b6cff'
+      const mainGold = '#edbe75'
+
+      const stats = this.filteredMarketBidQualificationStats
+      const colors = [mainCyan, mainBlue, mainGold]
+      const data = stats.map((item, index) => ({
+        value: item.value,
+        itemStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+            { offset: 0, color: `${colors[index % colors.length]}33` },
+            { offset: 1, color: colors[index % colors.length] }
+          ]),
+          borderRadius: [0, 4, 4, 0]
+        }
+      }))
+      const names = stats.map(item => item.name)
+
+      const option = {
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: '{b}: {c} 万元' },
+        grid: { left: '3%', right: '8%', bottom: '3%', top: '5%', containLabel: true },
+        xAxis: {
+          type: 'value',
+          axisLabel: { color: 'rgba(255,255,255,0.65)', fontSize: 10 },
+          splitLine: { lineStyle: { color: 'rgba(41,94,151,0.2)' } }
+        },
+        yAxis: {
+          type: 'category',
+          data: names.reverse(),
+          axisLabel: { color: textWhite, fontSize: 11 },
+          axisTick: { show: false },
+          axisLine: { lineStyle: { color: 'rgba(41,94,151,0.35)' } }
+        },
+        series: [{
+          name: '中标合同额',
+          type: 'bar',
+          data: data.reverse(),
+          barWidth: '55%',
+          label: { show: true, position: 'right', color: textWhite, fontSize: 10, formatter: '{c}' }
+        }]
+      }
+
+      this.marketBidChartInstance.setOption(option)
+    },
+
     // Dispose previous side charts
     disposeAllSideCharts() {
       Object.keys(this.chartInstances).forEach(key => {
@@ -2982,6 +3293,12 @@ export default {
           chart.setOption(this.getSideChartOption(cfg.chartType))
         }
       })
+
+      // Render market-expansion sub-module chart (tabs)
+      this.renderMarketAnalyzeChart()
+
+      // Render market-bid qualification chart
+      this.renderMarketBidChart()
     },
     // Factory method for side ECharts visual styles
     getSideChartOption(chartType) {
@@ -3015,7 +3332,7 @@ export default {
   }
   
   ::v-deep .topLayout {
-    height: 220px !important;
+    height: var(--top-layout-height, 220px) !important;
     top: 104px !important;
     left: 535px !important;
     width: 850px !important;
@@ -3662,6 +3979,35 @@ export default {
     }
   }
 
+  .header-notice {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    i {
+      font-size: 18px;
+      color: #00f3ff;
+      transition: all 0.2s;
+
+      &:hover {
+        color: #ffffff;
+        transform: scale(1.1);
+      }
+    }
+
+    .notice-dot {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background: #ff4d4f;
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(255, 77, 79, 0.8);
+    }
+  }
+
   .header-fullscreen {
     display: flex;
     align-items: center;
@@ -3987,6 +4333,104 @@ export default {
     .scope-table-container {
       padding: 0 10px 10px;
     }
+  }
+}
+
+/* === Maintenance Special Notice Dialog Styles === */
+.maintenance-notice-dialog {
+  .el-dialog {
+    background: rgba(6, 18, 40, 0.95);
+    border: 1px solid rgba(41, 94, 151, 0.6);
+    border-radius: 8px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(64, 158, 255, 0.08);
+  }
+
+  .el-dialog__header {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(41, 94, 151, 0.35);
+
+    .el-dialog__title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #00f3ff;
+      letter-spacing: 1px;
+    }
+
+    .el-dialog__headerbtn .el-dialog__close {
+      color: rgba(255, 255, 255, 0.7);
+
+      &:hover {
+        color: #00f3ff;
+      }
+    }
+  }
+
+  .el-dialog__body {
+    padding: 18px 22px;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .maintenance-notice-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+
+    .notice-section {
+      background: rgba(8, 28, 62, 0.45);
+      border: 1px solid rgba(41, 94, 151, 0.3);
+      border-radius: 6px;
+      padding: 14px 16px;
+
+      .notice-section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #edbe75;
+        margin-bottom: 10px;
+
+        .section-dot {
+          width: 6px;
+          height: 6px;
+          background: #00f3ff;
+          border-radius: 50%;
+          box-shadow: 0 0 6px rgba(0, 243, 255, 0.6);
+        }
+      }
+
+      .notice-section-content {
+        font-size: 13px;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.8);
+
+        p {
+          margin: 0 0 8px;
+        }
+
+        ul {
+          margin: 0;
+          padding-left: 18px;
+
+          li {
+            margin-bottom: 6px;
+          }
+        }
+
+        strong {
+          color: #00f3ff;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .maintenance-notice-footer {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(41, 94, 151, 0.25);
+    margin-top: 6px;
   }
 }
 
@@ -4333,7 +4777,10 @@ export default {
   box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   
   &.market-card-item {
-    height: 580px;
+    height: 400px;
+  }
+  &.market-bid-item {
+    height: 260px;
   }
   &.operation-card-item {
     height: 310px;
@@ -4348,7 +4795,10 @@ export default {
     padding: 10px;
 
     &.market-chart-wrapper {
-      height: 540px;
+      height: 380px;
+    }
+    &.bid-chart-wrapper {
+      height: 240px;
     }
     &.operation-chart-wrapper {
       height: 278px;
@@ -5172,8 +5622,8 @@ export default {
   .market-chart-sub {
     flex-shrink: 0;
     width: 100%;
-    height: 168px;
-    min-height: 168px;
+    height: 160px;
+    min-height: 160px;
   }
 
   .mini-section-title {
@@ -5191,111 +5641,125 @@ export default {
     }
   }
 
-  .market-qualification-row {
+  .market-analyze-module {
     flex-shrink: 0;
     margin-top: 8px;
     padding: 8px 10px;
     background: rgba(8, 28, 62, 0.4);
     border: 1px solid rgba(41, 94, 151, 0.35);
     border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 270px;
+    min-height: 270px;
 
-    .qualification-list {
+    .analyze-tabs {
       display: flex;
-      flex-direction: column;
       gap: 8px;
+      flex-shrink: 0;
 
-      .qualification-item {
-        .qual-info {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 4px;
+      .analyze-tab {
+        padding: 3px 10px;
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(6, 18, 40, 0.5);
+        border: 1px solid rgba(41, 94, 151, 0.4);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.25s;
+        user-select: none;
 
-          .qual-name {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.85);
-          }
-
-          .qual-value {
-            font-size: 12px;
-            font-weight: 600;
-            color: #edbe75;
-
-            .unit {
-              font-size: 10px;
-              color: rgba(255, 255, 255, 0.5);
-              font-weight: 400;
-            }
-          }
+        &:hover {
+          color: rgba(255, 255, 255, 0.9);
+          border-color: rgba(0, 243, 255, 0.5);
         }
 
-        .qual-bar-track {
-          height: 6px;
-          background: rgba(255, 255, 255, 0.08);
-          border-radius: 3px;
-          overflow: hidden;
+        &.active {
+          color: #030a1c;
+          background: linear-gradient(90deg, #00f3ff 0%, #1b6cff 100%);
+          border-color: transparent;
+          font-weight: 600;
+        }
+      }
+    }
 
-          .qual-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1b6cff 0%, #00f3ff 100%);
-            border-radius: 3px;
-            transition: width 0.8s ease;
-          }
+    .analyze-chart {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+    }
+  }
+}
+
+/* --- Market Bid Card CSS --- */
+.market-bid-card {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px;
+  color: #fff;
+  box-sizing: border-box;
+
+  .bid-total-row {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(8, 28, 62, 0.45);
+    border: 1px solid rgba(41, 94, 151, 0.35);
+    border-radius: 6px;
+
+    .bid-total-icon {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 243, 255, 0.12);
+      border: 1px solid rgba(0, 243, 255, 0.35);
+      border-radius: 50%;
+
+      i {
+        font-size: 20px;
+        color: #00f3ff;
+      }
+    }
+
+    .bid-total-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .bid-total-label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .bid-total-value {
+        .bid-total-num {
+          font-size: 24px;
+          font-weight: 700;
+          color: #edbe75;
+          letter-spacing: 1px;
+        }
+
+        .bid-total-unit {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.6);
+          margin-left: 4px;
         }
       }
     }
   }
 
-  .market-region-row {
-    flex-shrink: 0;
-    margin-top: 8px;
-    padding: 8px 10px;
-    background: rgba(8, 28, 62, 0.4);
-    border: 1px solid rgba(41, 94, 151, 0.35);
-    border-radius: 6px;
-
-    .region-bars {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-
-      .region-bar-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-
-        .region-name {
-          width: 38px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.75);
-          text-align: right;
-          flex-shrink: 0;
-        }
-
-        .region-bar-track {
-          flex: 1;
-          height: 6px;
-          background: rgba(255, 255, 255, 0.08);
-          border-radius: 3px;
-          overflow: hidden;
-
-          .region-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00a0e9 0%, #00f3ff 100%);
-            border-radius: 3px;
-            transition: width 0.8s ease;
-          }
-        }
-
-        .region-value {
-          width: 46px;
-          font-size: 11px;
-          color: rgba(255, 255, 255, 0.8);
-          text-align: right;
-          flex-shrink: 0;
-        }
-      }
-    }
+  .bid-qualification-chart {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
   }
 }
 
@@ -6311,17 +6775,35 @@ export default {
     background: rgba(14, 40, 85, 0.5);
     border-color: rgba(41, 94, 151, 0.5);
     color: rgba(255, 255, 255, 0.85);
-    
+
     &:hover {
       color: #00f3ff;
     }
   }
-  
+
   .el-radio-button__orig-radio:checked + .el-radio-button__inner {
-    background: rgba(0, 243, 255, 0.2);
+    background: rgba(0, 243, 255, 0.85);
     border-color: #00f3ff;
-    color: #00f3ff;
+    color: #061228;
+    font-weight: 600;
     box-shadow: -1px 0 0 0 #00f3ff;
+  }
+}
+
+/* --- Operation detail table: fit dialog width --- */
+.operation-table-container {
+  width: 100%;
+  overflow-x: auto;
+
+  .operation-detail-table {
+    min-width: 900px;
+  }
+}
+
+/* --- Market bid contract table --- */
+.market-bid-contract-table {
+  .el-table__body-wrapper {
+    overflow-y: auto;
   }
 }
 

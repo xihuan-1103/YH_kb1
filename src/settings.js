@@ -1,3 +1,3 @@
 module.exports = {
-  title: '丽水养护看板'
+  title: '交科养护看板'
 }

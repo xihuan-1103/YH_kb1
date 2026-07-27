@@ -4,13 +4,14 @@ import * as echarts from 'echarts'
 export const mockDataModel = {
   ref_inner: {
     left: [
-      { title: '市场拓展-新签合同额', chartType: 'market_expansion', desc: '统计及深度分析年度新签合同指标及拓展完成情况。' },
+      { title: '市场经营-新签合同额', chartType: 'market_bid', desc: '展示本年中标合同额总数，并按三个资质分别统计。' },
+      { title: '市场经营-在建项目合同额', chartType: 'market_expansion', desc: '统计在建项目合同额及按资质、区域、管养范围、项目类型多维分析。' },
       { title: '合资公司情况', chartType: 'jv_companies', desc: '统计各合资公司的持股股权比例、交工委派人员数量及年度营业收入情况。' }
     ],
     right: [
-      { title: '经营情况', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
-      { title: '经营完成情况', chartType: 'regional_market', desc: '展示本年度各月度计划与实际完成产值及完成达成率分析。' },
-      { title: '收款情况', chartType: 'receivables_info', desc: '按区域统计应收款考核基数、本年收款、完成比例、未收款金额并支持下钻明细分析。' }
+      { title: '运营情况-计量支付', chartType: 'group_operation', desc: '展示集团产值金额及计量情况，包含计量形象比等关键指标。' },
+      { title: '运营情况-施工进度', chartType: 'regional_market', desc: '展示本年度各月度计划与实际完成产值及完成达成率分析。' },
+      { title: '运营情况-收款进度', chartType: 'receivables_info', desc: '按区域统计应收款考核基数、本年收款、完成比例、未收款金额并支持下钻明细分析。' }
     ]
   },
   wages_total: {
